@@ -5,16 +5,10 @@
 #include <VS1053.h>
 #include <SPI.h>
 
-#include "SampleMp3.h"
+#include "configuration/config.h"
+#include "information/krInfo.h"
 
-#define HSPI_SCK 12 
-#define HSPI_MISO 13
-#define HSPI_MOSI 11
-#define HSPI_CS 48
-#define HSPI_DC 10
-#define VS1053_CS 14
-#define VS1053_DCS 47
-#define VS1053_DREQ 21
+
 
 //Via tutorial from 
 SPIClass *hspi = NULL;
@@ -62,13 +56,18 @@ void setup() {
     WiFi.setHostname("KitchenRadio2");
     WiFi.disconnect();
 
-    WiFi.begin("Rinus", "scheldestraat");
+    WiFi.begin(CONF_WIFI_SSID, CONF_WIFI_PASSWORD);
     Serial.printf("Connecting to WiFi" );
     while (WiFi.status() != WL_CONNECTED)
     {
         Serial.print('.');
         delay(500);
     }
+
+    char ipaddr[32];
+    IPAddress localIp = WiFi.localIP();
+    snprintf(ipaddr, sizeof(ipaddr), "%d.%d.%d.%d", localIp[0], localIp[1], localIp[2], localIp[3]);
+    information.system.IPAddress = ipaddr;
 
     u8g2.drawStr(20,20, "OK!");
     delay(400);
@@ -135,11 +134,10 @@ void loop() {
       u8g2.drawStr(POS_CLOCK, 24, "  Zaterdag");
       u8g2.drawStr(POS_CLOCK, 34, " 5 Oktober");
 
-      char ipaddr[32];
-      IPAddress localIp = WiFi.localIP();
-      snprintf(ipaddr, sizeof(ipaddr), "%d.%d.%d.%d", localIp[0], localIp[1], localIp[2], localIp[3]);
+      
+      
 
-      u8g2.drawStr(3, 24, ipaddr);
+      u8g2.drawStr(3, 24, (information.system.IPAddress).c_str());
       String s = "RSSI: " + String(WiFi.RSSI()) + " dBm";
       u8g2.drawStr(3, 34, s.c_str());
       //u8g2.print("RSSI: %d dBm", WiFi.RSSI());

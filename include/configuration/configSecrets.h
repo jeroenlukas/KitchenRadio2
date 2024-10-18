@@ -1,0 +1,9 @@
+#ifndef CONFIGSECRETS_H
+#define CONFIGSECRETS_H
+
+#define CONF_WIFI_SSID      "Rinus"
+#define CONF_WIFI_PASSWORD  "scheldestraat"
+
+#define CONFIG_OPENWEATHER_KEY "421c652804441735227f3cc5816de482"
+
+#endif
