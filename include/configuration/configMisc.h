@@ -16,16 +16,24 @@
 
 // Multibutton ranges
 #define BTN_ADC_OFF_MIN         3400
-#define BTN_ADC_OFF_MAX         3500
+#define BTN_ADC_OFF_MAX         3550
 #define BTN_ADC_RADIO_MIN       2700
-#define BTN_ADC_RADIO_MAX       2800
+#define BTN_ADC_RADIO_MAX       2900
 #define BTN_ADC_BLUETOOTH_MIN   2150
-#define BTN_ADC_BLUETOOTH_MAX   2200
+#define BTN_ADC_BLUETOOTH_MAX   2300
 #define BTN_ADC_SYSTEM_MIN      1550
-#define BTN_ADC_SYSTEM_MAX      1650
+#define BTN_ADC_SYSTEM_MAX      1700
 #define BTN_ADC_ALARM_MIN       400
-#define BTN_ADC_ALARM_MAX       450
+#define BTN_ADC_ALARM_MAX       500
 #define BTN_ADC_LAMP_MIN        980
-#define BTN_ADC_LAMP_MAX        1050
+#define BTN_ADC_LAMP_MAX        1100
+
+// Log
+#define U8LOG_WIDTH 100
+#define U8LOG_HEIGHT 60
+
+// Fonts
+#define U8LOG_FONT  u8g2_font_smallsimple_tr
+#define FONT_S  u8g2_font_simple1_tf
 
 #endif

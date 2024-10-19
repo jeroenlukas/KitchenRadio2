@@ -8,22 +8,27 @@
 #define HSPI_CS 48
 #define HSPI_DC 10
 
-// Wiring of VS1053 board (SPI connected in a standard way)
+// VS1053 board (SPI connected in a standard way)
 #define VS1053_CS 14
 #define VS1053_DCS 47
 #define VS1053_DREQ 21
 
+// LEDs
+#define LED_WEBRADIO    6
+#define LED_BLUETOOTH   7
+#define LED_ALARM   15
+#define LED_LAMP    16
+
 // Buttons
-#define BUTTONS     36
+#define BUTTONS     4
+
 
 // Pot meters
-#define POT_VOLUME   34
-//#define POT_TREBLE   36
-//#define POT_BASS     39
+#define POT_VOLUME   5
 
 // Encoder
-#define ROTARY_A    4
-#define ROTARY_B    0
-#define BUTTON_ENCODER  2
+#define ROTARY_A    38
+#define ROTARY_B    39
+#define BUTTON_ENCODER  40
 
 #endif
