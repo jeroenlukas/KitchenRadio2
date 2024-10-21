@@ -5,7 +5,7 @@
 #include <U8g2lib.h>
 
 #include <WiFi.h>
-#include <VS1053.h>
+
 #include <SPI.h>
 
 #include "log.h"
@@ -13,13 +13,18 @@
 #include "information/krInfo.h"
 #include "hmi/krFrontpanel.h"
 #include "flags.h"
+#include "audioplayer/krAudioplayer.h"
+#include "webradio/krWebradio.h"
+#include "audioplayer/cbuf_ps.h"
 
-
+#include "esp_system.h"
+#include "esp_himem.h"
+#include "esp_heap_caps.h"
 
 //Via tutorial from 
 SPIClass *hspi = NULL;
 
-WiFiClient client;
+//WiFiClient client;
 
 Ticker ticker_100ms_ref;
 
@@ -28,12 +33,13 @@ U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSP
 
 uint8_t u8log_buffer[U8LOG_WIDTH * U8LOG_HEIGHT];
 
-VS1053 player(VS1053_CS, VS1053_DCS, VS1053_DREQ);
 
 
-uint8_t mp3buff[64];
-const char *host = "icecast.omroep.nl";
-    const char *path = "/radio1-bb-mp3";
+String logline;
+
+
+ char *host = "icecast.omroep.nl";
+     char *path = "/radio1-bb-mp3";
     int httpPort = 80;/// 8563;
 
 void ticker_100ms()
@@ -110,8 +116,25 @@ void setup() {
     u8g2log.print(information.system.IPAddress);
     u8g2log.print(")\n");
 
+  delay(5000);
 
+    if (BOARD_HAS_PSRAM)
+    {
+        u8g2log.print("resize buffer\n");
+        circBuffer.resize(CIRCBUFFER_SIZE);
+    }
+    else u8g2log.print("no psram\n");
+  u8g2log.setRedrawMode(0);
+    u8g2log.print("PSRAM: (");
+    u8g2log.print(String(ESP.getPsramSize()).c_str());
+    u8g2log.print(")\n");
 
+   Serial.printf("\nTotal heap: %d", ESP.getHeapSize());
+    Serial.printf("\nFree heap: %d", ESP.getFreeHeap());
+    Serial.printf("\nTotal PSRAM: %d", ESP.getPsramSize());
+    Serial.printf("\nFree PSRAM: %d", ESP.getFreePsram());
+    Serial.printf("\nCPU freq: %d", ESP.getCpuFreqMHz());
+  
 
 
    // u8g2.drawStr(20,20, "OK!");
@@ -119,29 +142,18 @@ void setup() {
     Serial.println(WiFi.localIP());
 
     Serial.print("Starting vs1053\n");
-    u8g2log.print("Starting codec...\n");
-    player.begin();
-    if(player.isChipConnected())
-    {
-      u8g2log.print("VS1053 found\n");
-    }
-    else
-    {
-      u8g2log.print("ERROR: VS1053 not found\n");
-    }
-    player.loadDefaultVs1053Patches();
-    player.switchToMp3Mode(); // optional, some boards require this
-    player.setVolume(80);
+    
+    audioplayer_init();
 
     delay(2000);
 
 
     
 
-       Serial.print("connecting to ");
-    Serial.println(host);
+    //   Serial.print("connecting to ");
+  //  Serial.println(host);
 
-    if (!client.connect(host, httpPort)) {
+   /* if (!client.connect(host, httpPort)) {
         Serial.println("Connection failed");
         return;
     }
@@ -152,7 +164,7 @@ void setup() {
     client.print(String("GET ") + path + " HTTP/1.1\r\n" +
                  "Host: " + host + "\r\n" +
                  "Connection: close\r\n\r\n");
-
+*/
   ticker_100ms_ref.attach(0.1, ticker_100ms);
 
 }
@@ -183,6 +195,8 @@ if(millis() - prev_millis > 1000)
     u8g2.drawStr(3, 24, (information.system.IPAddress).c_str());
     String s = "RSSI: " + String(WiFi.RSSI()) + " dBm";
     u8g2.drawStr(3, 34, s.c_str());
+    s = "Buf: " + String(circBuffer.available()) + " B";
+    u8g2.drawStr(3, 44, s.c_str());
 
     u8g2.setFont(u8g2_font_lastapprenticebold_tr);
     u8g2.setCursor(POS_CLOCK + 4,14);
@@ -196,9 +210,14 @@ if(millis() - prev_millis > 1000)
     u8g2.drawStr(2, 62, "NPO Radio 7");
 
     // Log window
-    u8g2.setFont(FONT_S);
+    u8g2.setFont(U8LOG_FONT);
     //u8g2log.
     
+    if(logline != "")
+    {
+        u8g2log.print(logline.c_str());
+        logline = "";
+    }
     u8g2.drawLog(100,2,u8g2log);
     
 
@@ -221,21 +240,19 @@ if(millis() - prev_millis > 1000)
 front_multibuttons_loop();
 
 
-if (!client.connected()) {
+/*if (!client.connected()) {
       Serial.println("Reconnecting...");
       if (client.connect(host, httpPort)) {
           client.print(String("GET ") + path + " HTTP/1.1\r\n" +
                         "Host: " + host + "\r\n" +
                         "Connection: close\r\n\r\n");
       }
-  }
+  }*/
 
-  if (client.available() > 0) {
-      // The buffer size 64 seems to be optimal. At 32 and 128 the sound might be brassy.
-      uint8_t bytesread = client.read(mp3buff, 64);
-      player.playChunk(mp3buff, bytesread);
-        
-  }
+
+webradio_handle_stream();
+ // if (client.available() > 0)
+    audioplayer_feedbuffer();
 
 // -------------------------=== FLAGS ===--------------------------
 
@@ -244,10 +261,12 @@ if (flags.frontPanel.volumePotChanged)
   flags.frontPanel.volumePotChanged = false;
   player.setVolume(log(front_pot_vol + 1) / log(127) * 100);
   Serial.println(front_pot_vol);
-  u8g2log.setRedrawMode(0);
+  
+  /*u8g2log.setRedrawMode(0);
   u8g2log.print("volume changed:\n");
   u8g2log.print(front_pot_vol);
-  u8g2log.print("\n");
+  u8g2log.print("\n");*/
+  logline = "vol:" + String(front_pot_vol) + "\n";
 }
 
 if(flags.frontPanel.buttonOffPressed)
@@ -263,6 +282,9 @@ if(flags.frontPanel.buttonRadioPressed)
     flags.frontPanel.buttonRadioPressed = false;
     Serial.println("radio");
     //set_sound_mode(SOUNDMODE_WEBRADIO);
+
+    webradio_open_url(host, path);
+
     front_led_on(LED_WEBRADIO);
     front_led_off(LED_BLUETOOTH);
 }

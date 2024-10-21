@@ -30,7 +30,7 @@
 
 // Log
 #define U8LOG_WIDTH 100
-#define U8LOG_HEIGHT 60
+#define U8LOG_HEIGHT 40
 
 // Fonts
 #define U8LOG_FONT  u8g2_font_smallsimple_tr
