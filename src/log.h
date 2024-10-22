@@ -5,4 +5,6 @@
 
 U8G2LOG u8g2log;
 
+U8G2LOG u8g2log2;
+
 #endif

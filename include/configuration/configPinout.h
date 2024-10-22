@@ -13,6 +13,12 @@
 #define VS1053_DCS 47
 #define VS1053_DREQ 21
 
+// UART for comms with the KCX bluetooth module
+// Note, this is seen from the ESP's perspective, so TX = ESP output and RX = ESP input
+#define KCX_TX  43
+#define KCX_RX  44
+
+
 // LEDs
 #define LED_WEBRADIO    6
 #define LED_BLUETOOTH   7

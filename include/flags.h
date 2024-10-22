@@ -3,7 +3,7 @@
 
 
 #include "hmi/flagsFrontPanel.h"
-
+#include "flagsMain.h"
 
 /*
 This file contains event flags, which can be set and read throughout the system to track events.
@@ -14,8 +14,11 @@ class Flags
 {
     public:
 
+    FlagsMain main;
+
     FlagsFrontPanel frontPanel;
     
+
 
 };
 

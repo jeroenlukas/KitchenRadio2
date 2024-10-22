@@ -18,7 +18,7 @@ struct FlagsFrontPanel
 
 };
 
-void frontpanel_setup();
-void front_multibuttons_loop();
+//void frontpanel_setup();
+//void front_multibuttons_loop();
 
 #endif

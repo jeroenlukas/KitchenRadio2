@@ -16,7 +16,7 @@ int prev_adc_pot_vol = 0;
 int front_pot_vol = 0;
 
 bool prev_button_encoder = true;
-//const unsigned int pin = BUTTONS;
+
 
 BfButtonManager buttonmanager(BUTTONS, 6);
 BfButton btn_off(BfButton::ANALOG_BUTTON_ARRAY, 0);
@@ -32,16 +32,22 @@ void button_press_handler(BfButton *btn, BfButton::press_pattern_t pattern)
    switch(btn->getID())
    {
     case 0:
-        ///f_button_off_pressed = true;
         flags.frontPanel.buttonOffPressed = true;
         break;
     case 1:
-        //f_button_radio_pressed = true;
         flags.frontPanel.buttonRadioPressed = true;
         break;
     case 2:
-        //f_button_bluetooth_pressed = true;
         flags.frontPanel.buttonBluetoothPressed = true;
+        break;
+    case 3:
+        flags.frontPanel.buttonSystemPressed = true;
+        break;
+    case 4:
+        flags.frontPanel.buttonAlarmPressed = true;
+        break;
+    case 5:
+        flags.frontPanel.buttonLampPressed = true;
         break;
     default:
         break;
@@ -132,8 +138,13 @@ void front_read_buttons()
 
     // Multibuttons
     #ifdef CAL_BUTTONS
+    static uint16_t reading;
+    static uint32_t sum;
+    static uint32_t avg;
     static unsigned int i = 0;
+    const unsigned int pin = BUTTONS;
     reading = BfButtonManager::printReading(pin);
+
     if (reading > 100) { // button pressed
         sum += reading;
         if (i == 4) {
