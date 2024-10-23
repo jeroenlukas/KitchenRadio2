@@ -16,4 +16,6 @@ void audioplayer_init();
 
 void audioplayer_feedbuffer();
 
+void audioplayer_flushbuffer();
+
 #endif

@@ -11,7 +11,8 @@
 // Temp
 #include <HardwareSerial.h>
 
-#include "log.h"
+#include "logger.h"
+#include "main.h"
 
 #include "version.h"
 
@@ -40,18 +41,7 @@ Ticker ticker_1000ms_ref;
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
 
 
-uint8_t u8log_buffer[U8LOG_WIDTH * U8LOG_HEIGHT];
 
-
-
-String logline;
-bool updateLog = false;
-
-void printLogLine(String line)
-{
-  logline = line + "\n";
-  updateLog = true;
-}
 
  char *host = "icecast.omroep.nl";
      char *path = "/radio1-bb-mp3";
@@ -76,7 +66,6 @@ void setup() {
   Serial.begin(115200);
   Serial.print("hoiix");
 
-
   hspi = new SPIClass(HSPI);
   hspi->begin(HSPI_SCK, HSPI_MISO, HSPI_MOSI, HSPI_CS);
 
@@ -84,33 +73,32 @@ void setup() {
 
   u8g2.begin(); 
   u8g2.setFont(U8LOG_FONT);
-  u8g2log.begin(u8g2, U8LOG_WIDTH, U8LOG_HEIGHT, u8log_buffer);
-  u8g2log.setRedrawMode(0);
+
+  log_boot_begin();
+
+
 
 
   serialKcx.begin(9600, SERIAL_8N1, KCX_RX, KCX_TX);
 
-  u8g2log.print("-== KitchenRadio2! ==-\n");
+  log_boot("     -== KitchenRadio2! ==-");
 
   // Version
-  u8g2log.print("Firmware version: " + String(KR_VERSION) + "\n");
+  log_boot("Firmware version: " + String(KR_VERSION));
  
-  
-
   delay(300);
   // ESP info
-  u8g2log.print("Total heap: " + String(ESP.getHeapSize()) + " bytes\n");
-  u8g2log.print("Free heap: " + String(ESP.getFreeHeap()) + " bytes\n");
-  u8g2log.print("PSRAM size: " + String(ESP.getPsramSize()) + " bytes\n");
+  log_boot("Total heap: " + String(ESP.getHeapSize()) + " bytes");
+  log_boot("Free heap: " + String(ESP.getFreeHeap()) + " bytes");
+  log_boot("PSRAM size: " + String(ESP.getPsramSize()) + " bytes");
   delay(300);
-  u8g2log.print("CPU freq: " + String(ESP.getCpuFreqMHz()) + " MHz\n");
-  u8g2log.print("Chip model: " + String(ESP.getChipModel()) + " rev " + String(ESP.getChipRevision()) + "\n");
+  log_boot("CPU freq: " + String(ESP.getCpuFreqMHz()) + " MHz");
+  log_boot("Chip model: " + String(ESP.getChipModel()) + " rev " + String(ESP.getChipRevision()));
   delay(300);
 
   // WiFi setup
-  Serial.printf("Connecting to WiFi" );
-  u8g2log.print("Connecting to WiFi...");
-  u8g2log.setRedrawMode(1);
+
+  log_boot("Connecting to WiFi...");
 
   WiFi.mode(WIFI_STA);
   WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
@@ -123,47 +111,35 @@ void setup() {
   
   while (WiFi.status() != WL_CONNECTED)
   {
-      u8g2log.print(".");
+    //  u8g2log.print(".");
       Serial.print('.');
       delay(500);
   }
 
-  char ipaddr[32];
-  IPAddress localIp = WiFi.localIP();
-  snprintf(ipaddr, sizeof(ipaddr), "%d.%d.%d.%d", localIp[0], localIp[1], localIp[2], localIp[3]);
-  information.system.IPAddress = ipaddr;
+  
+  information.system.IPAddress = WiFi.localIP().toString(); 
 
-  u8g2log.setRedrawMode(0);
-  u8g2log.print("\nConnected! (" + (information.system.IPAddress) + ")\n");
-  u8g2log.print("RSSI: " + String(WiFi.RSSI()) + " dBm\n");
+  /*u8g2log.setRedrawMode(0);*/
+  log_boot("\nConnected! (" + (information.system.IPAddress) + ")");
+  log_boot("RSSI: " + String(WiFi.RSSI()) + " dBm");
 
   delay(300);
-
-  //u8g2log.setRedrawMode(0);
-
-  Serial.printf("\nTotal heap: %d", ESP.getHeapSize());
-  Serial.printf("\nFree heap: %d", ESP.getFreeHeap());
-  Serial.printf("\nTotal PSRAM: %d", ESP.getPsramSize());
-  Serial.printf("\nFree PSRAM: %d", ESP.getFreePsram());
-  Serial.printf("\nCPU freq: %d", ESP.getCpuFreqMHz());
-
-  Serial.println(WiFi.localIP());
 
   // PSRAM buffer
   circBuffer.resize(CIRCBUFFER_SIZE);
 
   // Codec
-  Serial.print("Starting vs1053\n");
-  u8g2log.print("Starting codec...\n");
+  Serial.print("Starting vs1053");
+  log_boot("Starting codec...");
   audioplayer_init();
 
   if(player.isChipConnected())
   {
-    u8g2log.print("VS1053 found\n");
+    log_boot("VS1053 found");
   }
   else
   {
-    u8g2log.print("Error: VS1053 not found!\n");
+    log_boot("Error: VS1053 not found!");
   }
 
   delay(500);
@@ -173,12 +149,10 @@ void setup() {
   ticker_1000ms_ref.attach(1.0, ticker_1000ms);
 
 
-  // Normal log
-  u8g2log2.begin(U8LOG_WIDTH, U8LOG_HEIGHT, u8log_buffer);
+  // Debug log on main screen
+  log_debug_init();
 }
 
-//int cnt = 0;
-//uint8_t i=0;//
 uint8_t hour;
 uint8_t secs;
 
@@ -191,7 +165,7 @@ void loop()
 
 
 // TODO change to flag
-  if((millis() - prev_millis > 1000) || (updateLog))
+  if((millis() - prev_millis > 1000) || (flags.main.updateLog))
   {
     prev_millis = millis();
     
@@ -219,14 +193,16 @@ void loop()
 
       // Log window
       u8g2.setFont(U8LOG_FONT);    
-      
-      if(updateLog)
+
+      // Add a log line if needed      
+      if(flags.main.updateLog)
       {
-        u8g2log2.print(logline);
-        
-        updateLog = false;
+        flags.main.updateLog = false;
+        log_debug_print();
       }
-      u8g2.drawLog(100,2,u8g2log2);
+
+      // Draw the log window
+      log_debug_draw();
 
     } while ( u8g2.nextPage() );
 
@@ -268,7 +244,8 @@ void loop()
     player.setVolume(log(front_pot_vol + 1) / log(127) * 100);
     Serial.println(front_pot_vol);
     
-    printLogLine("Volume: " + String(front_pot_vol));
+  //  printLogLine("Volume: " + String(front_pot_vol));
+    log_debug("Volume: " + String(front_pot_vol));
   }
 
   if(flags.frontPanel.buttonOffPressed)
@@ -276,7 +253,8 @@ void loop()
       flags.frontPanel.buttonOffPressed = false;
       //set_sound_mode(SOUNDMODE_OFF);
       Serial.println("OFF");
-      printLogLine("Sound off");
+      log_debug("Sound off");
+      webradio_stop();
       front_led_off(LED_WEBRADIO);
       front_led_off(LED_BLUETOOTH);
   }
@@ -284,7 +262,7 @@ void loop()
   {
       flags.frontPanel.buttonRadioPressed = false;
       Serial.println("radio");
-      printLogLine("Radio");
+      log_debug("Radio");
       //set_sound_mode(SOUNDMODE_WEBRADIO);
 
       webradio_open_url(host, path);
@@ -298,29 +276,28 @@ void loop()
     flags.frontPanel.buttonBluetoothPressed = false;
     front_led_off(LED_WEBRADIO);
     front_led_on(LED_BLUETOOTH);
-    printLogLine("Bluetooth");
+    log_debug("Bluetooth");
     Serial.println("bluetooth");
   }
 
   if(flags.frontPanel.buttonSystemPressed)
   {
     flags.frontPanel.buttonSystemPressed = false;
-    printLogLine("System");
+    log_debug("System");
   }
   
   if(flags.frontPanel.buttonAlarmPressed)
   {
     flags.frontPanel.buttonAlarmPressed = false;
-    printLogLine("Alarm");
+    log_debug("Alarm");
   }
   
   if(flags.frontPanel.buttonLampPressed)
   {
     flags.frontPanel.buttonLampPressed = false;
-    printLogLine("Lamp");
+    log_debug("Lamp");
   }
 
-//  player.playChunk(sampleMp3, sizeof(sampleMp3));
- 
+
 }
 

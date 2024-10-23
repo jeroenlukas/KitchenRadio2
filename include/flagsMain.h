@@ -5,6 +5,7 @@ struct FlagsMain
 {
     bool passed1000ms;
 
+    bool updateLog;
 };
 
 //void frontpanel_setup();

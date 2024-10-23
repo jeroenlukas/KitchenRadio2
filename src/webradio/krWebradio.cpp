@@ -3,6 +3,7 @@
 #include "audioplayer/krAudioPlayer.h"
 #include "configuration/config.h"
 #include "audioplayer/cbuf_ps.h"
+#include "logger.h"
 
 
 WiFiClient webradio_client;
@@ -21,6 +22,7 @@ void webradio_open_url(char *host, char *path)
     if (webradio_client.connect(host, 80))
     {
         Serial.println("Connected now");
+        log_debug("Connected");
     }
 
     Serial.print(host);
@@ -33,6 +35,16 @@ void webradio_open_url(char *host, char *path)
     webradio_client.print(String("GET ") + path + " HTTP/1.1\r\n" +
                           "Host: " + host + "\r\n" +
                           "Connection: close\r\n\r\n");
+}
+
+void webradio_stop()
+{
+    if(webradio_client.connected())
+    {
+        log_debug("Disconnecting");
+        webradio_client.stop();
+        audioplayer_flushbuffer();
+    }
 }
 
 bool webradio_buffered_enough(void)

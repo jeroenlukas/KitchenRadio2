@@ -56,3 +56,9 @@ void IRAM_ATTR audioplayer_feedbuffer()
         }
     }
 }
+
+// Flush the buffer, to avoid audio continuing to play once the stream is closed
+void audioplayer_flushbuffer()
+{
+    circBuffer.flush();
+}
