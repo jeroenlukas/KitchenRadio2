@@ -9,8 +9,8 @@ class Information {
 
         struct System
         {
-            int uptimeSeconds;
-            long wifiRSSI;
+            uint32_t uptimeSeconds;
+            int8_t wifiRSSI;
             String IPAddress;
         };
         struct AudioPlayer

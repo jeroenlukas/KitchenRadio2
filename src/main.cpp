@@ -7,6 +7,7 @@
 #include <WiFi.h>
 
 #include <SPI.h>
+#include <LittleFS.h>
 
 // Temp
 #include <HardwareSerial.h>
@@ -23,6 +24,7 @@
 #include "audioplayer/krAudioplayer.h"
 #include "webradio/krWebradio.h"
 #include "audioplayer/cbuf_ps.h"
+#include "webserver/krAsyncWebserver.h"
 
 #include "esp_system.h"
 #include "esp_himem.h"
@@ -76,15 +78,28 @@ void setup() {
 
   log_boot_begin();
 
+  log_boot("     -== KitchenRadio2! ==-");
+    // Version
+  log_boot("Firmware version: " + String(KR_VERSION));
+
+  // Littlefs
+  if(!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)){
+      Serial.println("LittleFS Mount Failed");
+      return;
+  }
+  else
+  {
+    log_boot("LittleFS mounted");
+  }
 
 
 
+  // Bluetooth module
   serialKcx.begin(9600, SERIAL_8N1, KCX_RX, KCX_TX);
 
-  log_boot("     -== KitchenRadio2! ==-");
+  
 
-  // Version
-  log_boot("Firmware version: " + String(KR_VERSION));
+
  
   delay(300);
   // ESP info
@@ -142,6 +157,9 @@ void setup() {
     log_boot("Error: VS1053 not found!");
   }
 
+  log_boot("Starting webserver");
+  webserver_init();
+
   delay(500);
 
   // Tickers
@@ -177,7 +195,7 @@ void loop()
       // Clock
       u8g2.setFont(FONT_S);
       u8g2.drawStr(3, 24, ("IP: " + information.system.IPAddress).c_str());
-      u8g2.drawStr(3, 34, ("RSSI: " + String(WiFi.RSSI()) + " dBm").c_str());
+      u8g2.drawStr(3, 34, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
       u8g2.drawStr(3, 44, ("Buf: " + String(circBuffer.available()) + " B").c_str());
 
       u8g2.setFont(u8g2_font_lastapprenticebold_tr);
@@ -215,6 +233,11 @@ void loop()
   {
     flags.main.passed1000ms = false;
 
+    webserver_notify_clients();
+
+    information.system.uptimeSeconds++;
+    information.system.wifiRSSI = WiFi.RSSI();
+
     secs++;
     
     if(secs > 59)
@@ -228,7 +251,7 @@ void loop()
     }
   }
  
-
+  webserver_cleanup_clients();
   
   front_multibuttons_loop();
 
