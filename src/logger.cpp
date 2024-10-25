@@ -67,5 +67,5 @@ void log_debug_print()
 
 void log_debug_draw()
 {
-    u8g2.drawLog(100, 2, u8g2log_debug);
+    u8g2.drawLog(90, 2, u8g2log_debug);
 }

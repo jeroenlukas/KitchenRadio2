@@ -12,12 +12,15 @@
 // Temp
 #include <HardwareSerial.h>
 
+#include <ezTime.h>
+
 #include "logger.h"
 #include "main.h"
 
 #include "version.h"
 
 #include "configuration/config.h"
+#include "settings/krSettings.h"
 #include "information/krInfo.h"
 #include "hmi/krFrontpanel.h"
 #include "flags.h"
@@ -42,7 +45,7 @@ Ticker ticker_1000ms_ref;
 
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
 
-
+Timezone localTimezone;
 
 
  char *host = "icecast.omroep.nl";
@@ -76,9 +79,11 @@ void setup() {
   u8g2.begin(); 
   u8g2.setFont(U8LOG_FONT);
 
+  u8g2.setContrast(1);
+
   log_boot_begin();
 
-  log_boot("     -== KitchenRadio2! ==-");
+  log_boot("==== KitchenRadio2! ====");
     // Version
   log_boot("Firmware version: " + String(KR_VERSION));
 
@@ -91,6 +96,7 @@ void setup() {
   {
     log_boot("LittleFS mounted");
   }
+
 
 
 
@@ -138,6 +144,24 @@ void setup() {
   log_boot("\nConnected! (" + (information.system.IPAddress) + ")");
   log_boot("RSSI: " + String(WiFi.RSSI()) + " dBm");
 
+  // Time - move to krTime!
+  waitForSync();
+  localTimezone.setLocation("Europe/Amsterdam");
+
+  log_boot(localTimezone.dateTime("D d M"));
+
+  // Should be moved to top
+  log_boot("Loading settings");
+  settings_read_config();
+  const char * deviceName = settings["deviceName"];
+  log_boot("Device name: " + String(deviceName));
+  const char * location = settings["location"];
+  log_boot("Location: " + String(location));
+  
+  
+
+
+
   delay(300);
 
   // PSRAM buffer
@@ -157,10 +181,15 @@ void setup() {
     log_boot("Error: VS1053 not found!");
   }
 
+
+
   log_boot("Starting webserver");
   webserver_init();
 
-  delay(500);
+  delay(1000);
+
+  
+
 
   // Tickers
   ticker_100ms_ref.attach(0.1, ticker_100ms);
@@ -171,10 +200,10 @@ void setup() {
   log_debug_init();
 }
 
-uint8_t hour;
-uint8_t secs;
+//uint8_t hour;
+//uint8_t secs;
 
-#define POS_CLOCK 210
+
 
 uint32_t prev_millis = 0;
 
@@ -192,18 +221,24 @@ void loop()
     // This draws the main screen. Only screen related stuff should be done here.
     do {
 
-      // Clock
+      
       u8g2.setFont(FONT_S);
       u8g2.drawStr(3, 24, ("IP: " + information.system.IPAddress).c_str());
       u8g2.drawStr(3, 34, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
       u8g2.drawStr(3, 44, ("Buf: " + String(circBuffer.available()) + " B").c_str());
 
-      u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-      u8g2.setCursor(POS_CLOCK + 4,14);
-      u8g2.print(u8x8_u8toa(hour,2)); //u8x8_u8toa(cnt,3));
-      u8g2.drawStr(POS_CLOCK + 22, 12, ":");
-      u8g2.setCursor(POS_CLOCK + 29, 14);
-      u8g2.print(u8x8_u8toa(secs,2));
+      // Clock
+      u8g2.setFont(FONT_CLOCK);
+      u8g2.setCursor(POSX_CLOCK, POSY_CLOCK);
+      u8g2.print(u8x8_u8toa(localTimezone.hour(),2)); 
+      u8g2.drawStr(POSX_CLOCK + 30, POSY_CLOCK - 2, ":");
+      u8g2.setCursor(POSX_CLOCK + 39, POSY_CLOCK);
+      u8g2.print(u8x8_u8toa(localTimezone.minute(),2));
+      
+      // Date
+      u8g2.setFont(FONT_S);
+      u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (localTimezone.dateTime("D d M")).c_str());
+
 
 
       u8g2.setFont(u8g2_font_lastapprenticebold_tr);
@@ -238,7 +273,7 @@ void loop()
     information.system.uptimeSeconds++;
     information.system.wifiRSSI = WiFi.RSSI();
 
-    secs++;
+   /* secs++;
     
     if(secs > 59)
     {
@@ -248,7 +283,7 @@ void loop()
     if(hour > 23)
     {
       hour = 0;
-    }
+    }*/
   }
  
   webserver_cleanup_clients();

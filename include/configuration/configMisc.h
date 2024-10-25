@@ -29,13 +29,19 @@
 #define BTN_ADC_LAMP_MAX        1150
 
 // Log - note: these values are not pixels but the number of characters!
-#define U8LOG_WIDTH 30
+#define U8LOG_WIDTH 23
 #define U8LOG_HEIGHT 10
 
 // Fonts
+// https://github.com/olikraus/u8g2/wiki/fntgrp
+#define FONT_CLOCK              u8g2_font_logisoso24_tf
 #define U8LOG_FONT              u8g2_font_tom_thumb_4x6_mf
 #define FONT_BOOTLOG
 #define FONT_DEBUGLOG
 #define FONT_S                  u8g2_font_simple1_tf
+
+// Widget positions
+#define POSX_CLOCK 186
+#define POSY_CLOCK 26
 
 #endif
