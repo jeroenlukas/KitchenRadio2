@@ -57,6 +57,13 @@ void IRAM_ATTR audioplayer_feedbuffer()
     }
 }
 
+void audioplayer_settone(int8_t bass_freq, int8_t bass_gain, int8_t treble_freq, int8_t treble_gain)
+{
+    uint16_t toneconfig = ((treble_gain << 12) + (treble_freq << 8) + (bass_gain << 4) + bass_freq);
+        
+    player.writeRegister(0x2, toneconfig);
+}
+
 // Flush the buffer, to avoid audio continuing to play once the stream is closed
 void audioplayer_flushbuffer()
 {

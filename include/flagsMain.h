@@ -4,6 +4,7 @@
 struct FlagsMain
 {
     bool passed1000ms;
+    bool passed30min;
 
     bool updateLog;
 };

@@ -29,8 +29,14 @@
 #define BTN_ADC_LAMP_MAX        1150
 
 // Log - note: these values are not pixels but the number of characters!
-#define U8LOG_WIDTH 23
-#define U8LOG_HEIGHT 10
+#define LOG_BOOT_WIDTH 40
+#define LOG_BOOT_HEIGHT 10
+#define LOG_DEBUG_WIDTH 23
+#define LOG_DEBUG_HEIGHT 9
+
+// Log position (in pixels)
+#define LOG_DEBUG_POSX  90
+#define LOG_DEBUG_POSY  0
 
 // Fonts
 // https://github.com/olikraus/u8g2/wiki/fntgrp

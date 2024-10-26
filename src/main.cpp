@@ -28,6 +28,7 @@
 #include "webradio/krWebradio.h"
 #include "audioplayer/cbuf_ps.h"
 #include "webserver/krAsyncWebserver.h"
+#include "information/krWeather.h"
 
 #include "esp_system.h"
 #include "esp_himem.h"
@@ -42,6 +43,7 @@ HardwareSerial serialKcx(2);
 
 Ticker ticker_100ms_ref;
 Ticker ticker_1000ms_ref;
+Ticker ticker_30min_ref;
 
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
 
@@ -63,6 +65,11 @@ void ticker_100ms()
 void ticker_1000ms()
 {
   flags.main.passed1000ms = true;
+}
+
+void ticker_30min()
+{
+  flags.main.passed30min = true;
 }
 
 void setup() {
@@ -144,9 +151,7 @@ void setup() {
   log_boot("\nConnected! (" + (information.system.IPAddress) + ")");
   log_boot("RSSI: " + String(WiFi.RSSI()) + " dBm");
 
-  // Time - move to krTime!
-  waitForSync();
-  localTimezone.setLocation("Europe/Amsterdam");
+  
 
   log_boot(localTimezone.dateTime("D d M"));
 
@@ -158,7 +163,11 @@ void setup() {
   const char * location = settings["location"];
   log_boot("Location: " + String(location));
   
-  
+  // Time - move to krTime!
+  waitForSync();
+  const char * timeZone = settings["clock"]["timezone"];
+  localTimezone.setLocation(timeZone);
+  log_boot("Timezone:" + String(timeZone));
 
 
 
@@ -181,7 +190,15 @@ void setup() {
     log_boot("Error: VS1053 not found!");
   }
 
+  // Set tone control
+  audioplayer_settone(int(settings["audio"]["toneControl"]["bassFreq"]), 
+                      int(settings["audio"]["toneControl"]["bassGain"]), 
+                      int(settings["audio"]["toneControl"]["trebleFreq"]), 
+                      int(settings["audio"]["toneControl"]["trebleGain"]));
 
+
+  // Get weather
+  weather_retrieve();
 
   log_boot("Starting webserver");
   webserver_init();
@@ -194,6 +211,7 @@ void setup() {
   // Tickers
   ticker_100ms_ref.attach(0.1, ticker_100ms);
   ticker_1000ms_ref.attach(1.0, ticker_1000ms);
+  ticker_30min_ref.attach(1.0 * 1800, ticker_30min);
 
 
   // Debug log on main screen
@@ -221,11 +239,13 @@ void loop()
     // This draws the main screen. Only screen related stuff should be done here.
     do {
 
-      
+      // Weather
       u8g2.setFont(FONT_S);
-      u8g2.drawStr(3, 24, ("IP: " + information.system.IPAddress).c_str());
-      u8g2.drawStr(3, 34, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
-      u8g2.drawStr(3, 44, ("Buf: " + String(circBuffer.available()) + " B").c_str());
+      u8g2.drawStr(3, 6, (information.weather.stateShort).c_str());
+      u8g2.drawStr(3, 16, ("Temp: " + String(information.weather.temperature) + "\xb0" + "C").c_str());
+      u8g2.drawStr(3, 26, ("Wind: " + String(information.weather.windSpeedKmh) + " kmh").c_str());
+      u8g2.drawStr(3, 36, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
+      u8g2.drawStr(3, 46, ("Buf: " + String(circBuffer.available()) + " B").c_str());
 
       // Clock
       u8g2.setFont(FONT_CLOCK);
@@ -240,22 +260,14 @@ void loop()
       u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (localTimezone.dateTime("D d M")).c_str());
 
 
-
+      // === Sound mode / Station ===
       u8g2.setFont(u8g2_font_lastapprenticebold_tr);
       u8g2.drawStr(2, 62, "NPO Radio 7");
 
       // Log window
-      u8g2.setFont(U8LOG_FONT);    
-
-      // Add a log line if needed      
-      if(flags.main.updateLog)
-      {
-        flags.main.updateLog = false;
-        log_debug_print();
-      }
-
-      // Draw the log window
       log_debug_draw();
+
+
 
     } while ( u8g2.nextPage() );
 
@@ -272,18 +284,14 @@ void loop()
 
     information.system.uptimeSeconds++;
     information.system.wifiRSSI = WiFi.RSSI();
+  }
 
-   /* secs++;
-    
-    if(secs > 59)
-    {
-      secs = 0;
-      hour++;
-    }
-    if(hour > 23)
-    {
-      hour = 0;
-    }*/
+  // Execute stuff every 30 minutes
+  if(flags.main.passed30min)
+  {
+    flags.main.passed30min = false;
+    log_debug("Weather lookup");
+    weather_retrieve();
   }
  
   webserver_cleanup_clients();
@@ -342,12 +350,14 @@ void loop()
   {
     flags.frontPanel.buttonSystemPressed = false;
     log_debug("System");
+    audioplayer_settone(2,0,15,0); // flat
   }
   
   if(flags.frontPanel.buttonAlarmPressed)
   {
     flags.frontPanel.buttonAlarmPressed = false;
     log_debug("Alarm");
+    audioplayer_settone(15,15,3,-6); // bass boost treble cut
   }
   
   if(flags.frontPanel.buttonLampPressed)

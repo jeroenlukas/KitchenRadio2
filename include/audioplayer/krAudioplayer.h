@@ -18,4 +18,6 @@ void audioplayer_feedbuffer();
 
 void audioplayer_flushbuffer();
 
+void audioplayer_settone(int8_t bass_freq, int8_t bass_gain, int8_t treble_freq, int8_t treble_gain);
+
 #endif

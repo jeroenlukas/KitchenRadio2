@@ -23,6 +23,8 @@ class Information {
         };
         struct Weather
         {
+            String stateShort;
+            String stateLong;
             float temperature;
             double windSpeedKmh;
         };
