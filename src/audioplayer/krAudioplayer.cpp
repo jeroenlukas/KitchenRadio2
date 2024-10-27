@@ -4,10 +4,13 @@
 #include "audioplayer/cbuf_ps.h"
 #include "audioplayer/krAudioplayer.h"
 #include "webradio/krWebradio.h"
+#include "configuration/constants.h"
 
 VS1053 player(VS1053_CS, VS1053_DCS, VS1053_DREQ);
 
 uint8_t mp3buff[64];
+
+uint8_t audioplayer_soundMode = SOUNDMODE_OFF;
 
 cbuf_ps circBuffer(1024); 
 
@@ -28,6 +31,51 @@ void audioplayer_init()
     player.loadDefaultVs1053Patches();
     player.switchToMp3Mode(); // optional, some boards require this
     player.setVolume(80);
+}
+
+void audioplayer_set_soundmode(uint8_t soundMode)
+{
+    switch(audioplayer_soundMode)
+    {
+        case SOUNDMODE_OFF:
+            break;
+        case SOUNDMODE_WEBRADIO:
+            webradio_stop();
+            break;
+        case SOUNDMODE_BLUETOOTH:
+            // ...           
+            break;
+       // default:
+       //     break;
+    }
+
+    switch(soundMode)
+    {
+        case SOUNDMODE_OFF:
+
+            break;
+        case SOUNDMODE_WEBRADIO:
+            webradio_open_station(0);
+            break;
+        case SOUNDMODE_BLUETOOTH:
+            uint16_t sci_mode = player.read_register(0x00);
+            Serial.println("sci_mode: " + String(sci_mode));
+            
+            player.writeRegister(0xC, 16000); // aictrl0 samp rate
+            player.writeRegister(0xD, 0); // aictrl1, gain
+            player.writeRegister(0xE, 4096); // aictrl2 max autogain amp
+            player.writeRegister(0xF, 0); // aictrl3 mode
+
+            player.writeRegister(0x0, sci_mode | (1 << 12) | (1 << 14));            
+            //player.loadUserCode()
+
+            sci_mode = player.read_register(0x00);
+            Serial.println("new sci_mode: " + String(sci_mode));
+            break;
+    }
+
+
+    audioplayer_soundMode = soundMode;
 }
 
 void IRAM_ATTR audioplayer_feedbuffer()

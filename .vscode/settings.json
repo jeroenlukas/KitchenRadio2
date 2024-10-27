@@ -4,6 +4,12 @@
         "fstream": "cpp",
         "iomanip": "cpp",
         "istream": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "vector": "cpp",
+        "exception": "cpp",
+        "limits": "cpp",
+        "type_traits": "cpp",
+        "typeinfo": "cpp",
+        "*.plg": "cpp"
     }
 }

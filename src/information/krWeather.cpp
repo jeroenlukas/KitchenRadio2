@@ -8,7 +8,7 @@
 
 HTTPClient http;
 
-const String endpoint = "http://api.openweathermap.org/data/2.5/weather?q=Zierikzee,nl&units=metric&APPID=";
+const String endpoint = "http://api.openweathermap.org/data/2.5/weather?q=Zierikzee,nl&units=metric&lang=nl&APPID=";
 const String key = CONFIG_OPENWEATHER_KEY;
 
 float weather_temperature = 0.0;
@@ -32,7 +32,7 @@ bool weather_retrieve()
         deserializeJson(doc, payload);
         String weather_type = doc["weather"][0]["description"];
         Serial.print(payload);
-        information.weather.stateShort = weather_type;//( doc["weather"][0]["main"]); //weh; //doc["weather"]["main"].as<String>();
+        information.weather.stateShort = weather_type;
         information.weather.temperature = doc["main"]["temp"];        
         information.weather.windSpeedKmh = (double)(doc["wind"]["speed"]) * 3.6;
         

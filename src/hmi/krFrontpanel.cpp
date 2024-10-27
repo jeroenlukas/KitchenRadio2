@@ -179,12 +179,12 @@ void front_read_encoder()
         if ((int)(encoder.getDirection()) == 1)
         {
             //f_front_encoder_turn_right = true;
-            flags.frontPanel.encoderTurnRight = true;
+            flags.frontPanel.encoderTurnLeft = true;
         }
         else
         {
             //f_front_encoder_turn_left = true;
-            flags.frontPanel.encoderTurnLeft = true;
+            flags.frontPanel.encoderTurnRight = true;
         }
         pos = newPos;
     }

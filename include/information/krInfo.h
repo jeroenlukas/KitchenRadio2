@@ -21,6 +21,15 @@ class Information {
 
             int volume;
         };
+
+        struct Webradio
+        {
+            uint8_t stationIndex;
+            String stationName;
+
+            uint8_t stationCount;
+        };
+
         struct Weather
         {
             String stateShort;
@@ -33,6 +42,7 @@ class Information {
 
         System system;
         AudioPlayer audioPlayer;
+        Webradio webRadio;
         Weather weather;
 
 };

@@ -29,6 +29,7 @@
 #include "audioplayer/cbuf_ps.h"
 #include "webserver/krAsyncWebserver.h"
 #include "information/krWeather.h"
+#include "configuration/constants.h"
 
 #include "esp_system.h"
 #include "esp_himem.h"
@@ -50,9 +51,9 @@ U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSP
 Timezone localTimezone;
 
 
- char *host = "icecast.omroep.nl";
-     char *path = "/radio1-bb-mp3";
-    int httpPort = 80;/// 8563;
+ //char *host = "icecast.omroep.nl";
+   //  char *path = "/radio1-bb-mp3";
+    //int httpPort = 80;/// 8563;
 
 void ticker_100ms()
 {
@@ -76,7 +77,7 @@ void setup() {
   // put your setup code here, to run once:
   
   Serial.begin(115200);
-  Serial.print("hoiix");
+  Serial.print("KitchenRadio 2");
 
   hspi = new SPIClass(HSPI);
   hspi->begin(HSPI_SCK, HSPI_MISO, HSPI_MOSI, HSPI_CS);
@@ -105,7 +106,7 @@ void setup() {
   }
 
 
-
+  audioplayer_set_soundmode(SOUNDMODE_OFF);
 
   // Bluetooth module
   serialKcx.begin(9600, SERIAL_8N1, KCX_RX, KCX_TX);
@@ -124,6 +125,9 @@ void setup() {
   log_boot("Chip model: " + String(ESP.getChipModel()) + " rev " + String(ESP.getChipRevision()));
   delay(300);
 
+
+  information.webRadio.stationCount = webradio_get_num_stations();
+  log_boot("Stations: " + String( information.webRadio.stationCount));
   // WiFi setup
 
   log_boot("Connecting to WiFi...");
@@ -221,7 +225,7 @@ void setup() {
 //uint8_t hour;
 //uint8_t secs;
 
-
+//uint8_t stationIndex = 0;
 
 uint32_t prev_millis = 0;
 
@@ -241,11 +245,11 @@ void loop()
 
       // Weather
       u8g2.setFont(FONT_S);
-      u8g2.drawStr(3, 6, (information.weather.stateShort).c_str());
-      u8g2.drawStr(3, 16, ("Temp: " + String(information.weather.temperature) + "\xb0" + "C").c_str());
+      u8g2.drawStr(3, 8, (information.weather.stateShort).c_str());
+      u8g2.drawStr(3, 17, ("Temp: " + String(information.weather.temperature) + "\xb0" + "C").c_str());
       u8g2.drawStr(3, 26, ("Wind: " + String(information.weather.windSpeedKmh) + " kmh").c_str());
-      u8g2.drawStr(3, 36, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
-      u8g2.drawStr(3, 46, ("Buf: " + String(circBuffer.available()) + " B").c_str());
+      u8g2.drawStr(3, 35, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
+      u8g2.drawStr(3, 44, ("Buf: " + String(circBuffer.available()) + " B").c_str());
 
       // Clock
       u8g2.setFont(FONT_CLOCK);
@@ -260,9 +264,20 @@ void loop()
       u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (localTimezone.dateTime("D d M")).c_str());
 
 
-      // === Sound mode / Station ===
+      // Sound mode / Station 
       u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-      u8g2.drawStr(2, 62, "NPO Radio 7");
+      switch(audioplayer_soundMode)
+      {
+        case SOUNDMODE_OFF:
+          u8g2.drawStr(2, 62, "(Off)");
+          break;
+        case SOUNDMODE_WEBRADIO:
+          u8g2.drawStr(2, 62, (information.webRadio.stationName).c_str());
+          break;
+        case SOUNDMODE_BLUETOOTH:
+          u8g2.drawStr(2, 62, "Bluetooth");
+          break;
+      }
 
       // Log window
       log_debug_draw();
@@ -324,7 +339,9 @@ void loop()
       //set_sound_mode(SOUNDMODE_OFF);
       Serial.println("OFF");
       log_debug("Sound off");
-      webradio_stop();
+      //webradio_stop();
+
+      audioplayer_set_soundmode(SOUNDMODE_OFF);
       front_led_off(LED_WEBRADIO);
       front_led_off(LED_BLUETOOTH);
   }
@@ -335,7 +352,8 @@ void loop()
       log_debug("Radio");
       //set_sound_mode(SOUNDMODE_WEBRADIO);
 
-      webradio_open_url(host, path);
+      //webradio_open_url(host, path);
+      audioplayer_set_soundmode(SOUNDMODE_WEBRADIO);
 
       front_led_on(LED_WEBRADIO);
       front_led_off(LED_BLUETOOTH);
@@ -348,6 +366,7 @@ void loop()
     front_led_on(LED_BLUETOOTH);
     log_debug("Bluetooth");
     Serial.println("bluetooth");
+    audioplayer_set_soundmode(SOUNDMODE_BLUETOOTH);
   }
 
   if(flags.frontPanel.buttonSystemPressed)
@@ -373,20 +392,34 @@ void loop()
   if (flags.frontPanel.encoderButtonPressed)
   {
     flags.frontPanel.encoderButtonPressed = false;
-    log_debug("encoder sw");
   }
 
   if (flags.frontPanel.encoderTurnLeft)
   {
     flags.frontPanel.encoderTurnLeft = false;
-    log_debug("left");
+
+    if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+    {
+      if(webradio_stationIndex > 0)
+      {
+        webradio_stationIndex--;
+        webradio_open_station(webradio_stationIndex);
+      }      
+    }
   }
 
   if (flags.frontPanel.encoderTurnRight)
   {
     flags.frontPanel.encoderTurnRight = false;
-    log_debug("right");
-  }
 
+    if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+    {
+      if(webradio_stationIndex < information.webRadio.stationCount - 1)
+      {
+        webradio_stationIndex++;      
+        webradio_open_station(webradio_stationIndex);
+      }
+    }
+  }
 }
 

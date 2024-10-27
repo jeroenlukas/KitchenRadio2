@@ -1,12 +1,21 @@
 #include <WiFi.h>
+#include <ArduinoJson.h>
+#include <LittleFS.h>
+
 #include "webradio/krWebradio.h"
 #include "audioplayer/krAudioPlayer.h"
 #include "configuration/config.h"
 #include "audioplayer/cbuf_ps.h"
 #include "logger.h"
+#include "information/krInfo.h"
 
 
 WiFiClient webradio_client;
+
+String webradio_read_stations();
+
+uint8_t webradio_stationIndex = 0;
+uint8_t webradio_numStations = 0;
 
 bool dataPanic = false;
 
@@ -15,6 +24,20 @@ bool bufferedEnough = false;
 bool webradio_isconnected()
 {
     return (webradio_client.connected() > 0);
+}
+
+uint8_t webradio_get_num_stations()
+{
+    DynamicJsonDocument stations(2048);
+    String fileContent = webradio_read_stations();
+
+    if(deserializeJson(stations, fileContent) != DeserializationError::Ok)
+    {
+        Serial.println("Error: deser error!");
+        return false;
+    }
+
+    return stations["stations"].size();
 }
 
 void webradio_open_url(char *host, char *path)
@@ -45,6 +68,90 @@ void webradio_stop()
         webradio_client.stop();
         audioplayer_flushbuffer();
     }
+}
+
+String webradio_read_stations()
+{
+//    DynamicJsonDocument stations(2048);
+
+    File fileStations = LittleFS.open("/settings/stations.json", "r");
+
+    if(!fileStations)
+    {
+        Serial.print("Error: could not open stations.json");
+        return "";
+    }
+
+    String fileContent;
+
+    while(fileStations.available())
+    {
+        String data = fileStations.readString();
+        fileContent += data;
+//        Serial.print(data);
+    }
+    Serial.print("\n(end)\n");
+
+    fileStations.close();
+
+    return fileContent;
+}
+
+bool webradio_open_station(uint8_t index)
+{
+    DynamicJsonDocument stations(2048);
+
+    File fileStations = LittleFS.open("/settings/stations.json", "r");
+
+    if(!fileStations)
+    {
+        Serial.print("Error: could not open stations.json");
+        return false;
+    }
+
+    String fileContent;
+
+    while(fileStations.available())
+    {
+        String data = fileStations.readString();
+        fileContent += data;
+//        Serial.print(data);
+    }
+    Serial.print("\n(end)\n");
+
+    fileStations.close();
+
+    if(deserializeJson(stations, fileContent) != DeserializationError::Ok)
+    {
+        Serial.println("Error: deser error!");
+        return false;
+    }
+   
+
+    String stationName = stations["stations"][index]["name"];
+    String url = stations["stations"][index]["url"];
+    Serial.println(stationName);
+    Serial.println(url);
+
+    information.webRadio.stationIndex = index;
+    information.webRadio.stationName = stationName;
+    // Split url in host and path
+    // example: stream.bnr.nl/bnr_mp3_128_20
+    uint16_t firstSlash = url.indexOf("/", 8);
+    char host[64];
+    char path[64];
+    
+    url.substring(0,firstSlash).toCharArray(host, 64);
+    url.substring(firstSlash).toCharArray(path, 64);
+    Serial.println("host: " + String(host));
+    Serial.println("path: " + String(path));
+
+    webradio_open_url(host, path);
+
+    
+    log_debug(stationName.c_str());
+
+    return true;
 }
 
 bool webradio_buffered_enough(void)
