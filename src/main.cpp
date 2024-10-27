@@ -302,6 +302,10 @@ void loop()
 
   audioplayer_feedbuffer();
 
+  //front_read_buttons();
+
+  front_read_encoder();
+
   // -------------------------=== FLAGS ===--------------------------
 
   if (flags.frontPanel.volumePotChanged)
@@ -366,6 +370,23 @@ void loop()
     log_debug("Lamp");
   }
 
+  if (flags.frontPanel.encoderButtonPressed)
+  {
+    flags.frontPanel.encoderButtonPressed = false;
+    log_debug("encoder sw");
+  }
+
+  if (flags.frontPanel.encoderTurnLeft)
+  {
+    flags.frontPanel.encoderTurnLeft = false;
+    log_debug("left");
+  }
+
+  if (flags.frontPanel.encoderTurnRight)
+  {
+    flags.frontPanel.encoderTurnRight = false;
+    log_debug("right");
+  }
 
 }
 

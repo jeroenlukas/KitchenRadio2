@@ -2,6 +2,7 @@
 //#include <RotaryEncoder.h>
 #include <BfButtonManager.h>
 #include <BfButton.h>
+#include <RotaryEncoder.h>
 #include "configuration/config.h"
 #include "hmi/krFrontPanel.h"
 #include "flags.h"
@@ -25,6 +26,8 @@ BfButton btn_bluetooth(BfButton::ANALOG_BUTTON_ARRAY, 2);
 BfButton btn_system(BfButton::ANALOG_BUTTON_ARRAY, 3);
 BfButton btn_alarm(BfButton::ANALOG_BUTTON_ARRAY, 4);
 BfButton btn_lamp(BfButton::ANALOG_BUTTON_ARRAY, 5);
+
+RotaryEncoder encoder(ROTARY_A, ROTARY_B, RotaryEncoder::LatchMode::FOUR3);
 
 void button_press_handler(BfButton *btn, BfButton::press_pattern_t pattern)
 {
@@ -130,11 +133,12 @@ void front_multibuttons_loop()
 void front_read_buttons()
 {
     // Encoder switch
-    /*if (digitalRead(BUTTON_ENCODER) < prev_button_encoder)
+    if (digitalRead(BUTTON_ENCODER) < prev_button_encoder)
     {
-        //f_front_button_encoder_pressed = true;
         flags.frontPanel.encoderButtonPressed = true;
-    }*/
+    }
+
+
 
     // Multibuttons
     #ifdef CAL_BUTTONS
@@ -162,6 +166,28 @@ void front_read_buttons()
     #endif
 
     prev_button_encoder = digitalRead(BUTTON_ENCODER);
+}
+
+void front_read_encoder()
+{
+    static int pos = 0;
+    encoder.tick();
+
+    int newPos = encoder.getPosition();
+    if (pos != newPos)
+    {
+        if ((int)(encoder.getDirection()) == 1)
+        {
+            //f_front_encoder_turn_right = true;
+            flags.frontPanel.encoderTurnRight = true;
+        }
+        else
+        {
+            //f_front_encoder_turn_left = true;
+            flags.frontPanel.encoderTurnLeft = true;
+        }
+        pos = newPos;
+    }
 }
 
 void front_read_pots()
