@@ -17,6 +17,7 @@
 // Note, this is seen from the ESP's perspective, so TX = ESP output and RX = ESP input
 #define KCX_TX  43
 #define KCX_RX  44
+#define KCX_CONNECT 42
 
 
 // LEDs

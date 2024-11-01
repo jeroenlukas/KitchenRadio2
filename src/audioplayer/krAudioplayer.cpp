@@ -4,7 +4,10 @@
 #include "audioplayer/cbuf_ps.h"
 #include "audioplayer/krAudioplayer.h"
 #include "webradio/krWebradio.h"
+#include "hmi/krFrontpanel.h"
 #include "configuration/constants.h"
+#include "audioplayer/kcx.h"
+#include "flags.h"
 
 VS1053 player(VS1053_CS, VS1053_DCS, VS1053_DREQ);
 
@@ -35,6 +38,7 @@ void audioplayer_init()
 
 void audioplayer_set_soundmode(uint8_t soundMode)
 {
+    // Current soundmode
     switch(audioplayer_soundMode)
     {
         case SOUNDMODE_OFF:
@@ -43,37 +47,45 @@ void audioplayer_set_soundmode(uint8_t soundMode)
             webradio_stop();
             break;
         case SOUNDMODE_BLUETOOTH:
-            // ...           
+            kcx_stop();
+            player.writeRegister(0x0, 0x4804 ); // default + reset
             break;
        // default:
        //     break;
     }
 
+    // Switch to the new soundmode
     switch(soundMode)
     {
         case SOUNDMODE_OFF:
 
             break;
         case SOUNDMODE_WEBRADIO:
+           // player.setVolume(log(front_pot_vol + 1) / log(127) * 100);
             webradio_open_station(0);
             break;
         case SOUNDMODE_BLUETOOTH:
+            kcx_start();
+
+            player.setVolume(log(100 + 1) / log(127) * 100);
+
             uint16_t sci_mode = player.read_register(0x00);
             Serial.println("sci_mode: " + String(sci_mode));
             
-            player.writeRegister(0xC, 16000); // aictrl0 samp rate
-            player.writeRegister(0xD, 0); // aictrl1, gain
-            player.writeRegister(0xE, 4096); // aictrl2 max autogain amp
-            player.writeRegister(0xF, 0); // aictrl3 mode
+            player.writeRegister(0xC, 44100); // aictrl0 samp rate
+            player.writeRegister(0xD, 1024); // aictrl1, gain. controlled by volume pot
+            player.writeRegister(0xE, 1024); // aictrl2 max autogain amp, not used
+            player.writeRegister(0xF, 1); // aictrl3 mode
 
-            player.writeRegister(0x0, sci_mode | (1 << 12) | (1 << 14));            
+            player.writeRegister(0x0, sci_mode | (1 << 12) | (1 << 14) | (1 << 2));            
             //player.loadUserCode()
-
+            delay(10);
             sci_mode = player.read_register(0x00);
             Serial.println("new sci_mode: " + String(sci_mode));
             break;
     }
 
+    flags.frontPanel.volumePotChanged = true;
 
     audioplayer_soundMode = soundMode;
 }

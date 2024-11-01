@@ -9,10 +9,8 @@
 #include <SPI.h>
 #include <LittleFS.h>
 
-// Temp
-#include <HardwareSerial.h>
 
-#include <ezTime.h>
+
 
 #include "logger.h"
 #include "main.h"
@@ -29,7 +27,9 @@
 #include "audioplayer/cbuf_ps.h"
 #include "webserver/krAsyncWebserver.h"
 #include "information/krWeather.h"
+#include "information/krTime.h"
 #include "configuration/constants.h"
+#include "audioplayer/kcx.h"
 
 #include "esp_system.h"
 #include "esp_himem.h"
@@ -38,27 +38,16 @@
 //Via tutorial from 
 SPIClass *hspi = NULL;
 
-//WiFiClient client;
-
-HardwareSerial serialKcx(2);
-
 Ticker ticker_100ms_ref;
 Ticker ticker_1000ms_ref;
+Ticker ticker_1min_ref;
 Ticker ticker_30min_ref;
 
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
 
-Timezone localTimezone;
-
-
- //char *host = "icecast.omroep.nl";
-   //  char *path = "/radio1-bb-mp3";
-    //int httpPort = 80;/// 8563;
 
 void ticker_100ms()
 {
-    //webserver_handleclient();
-    // Read pots
     front_read_buttons();
     front_read_pots();
 }
@@ -73,11 +62,22 @@ void ticker_30min()
   flags.main.passed30min = true;
 }
 
+void ticker_1min()
+{
+  flags.main.passed1min = true;
+}
+
 void setup() {
   // put your setup code here, to run once:
   
   Serial.begin(115200);
   Serial.print("KitchenRadio 2");
+
+  // Bluetooth module
+  //log_boot("Bluetooth init");
+  // Start it early to power it off
+  
+
 
   hspi = new SPIClass(HSPI);
   hspi->begin(HSPI_SCK, HSPI_MISO, HSPI_MOSI, HSPI_CS);
@@ -106,10 +106,9 @@ void setup() {
   }
 
 
-  audioplayer_set_soundmode(SOUNDMODE_OFF);
+  kcx_init();
 
-  // Bluetooth module
-  serialKcx.begin(9600, SERIAL_8N1, KCX_RX, KCX_TX);
+  audioplayer_set_soundmode(SOUNDMODE_OFF);
 
   
 
@@ -124,6 +123,9 @@ void setup() {
   log_boot("CPU freq: " + String(ESP.getCpuFreqMHz()) + " MHz");
   log_boot("Chip model: " + String(ESP.getChipModel()) + " rev " + String(ESP.getChipRevision()));
   delay(300);
+
+
+  
 
 
   information.webRadio.stationCount = webradio_get_num_stations();
@@ -157,7 +159,7 @@ void setup() {
 
   
 
-  log_boot(localTimezone.dateTime("D d M"));
+  //log_boot(localTimezone.dateTime("D d M"));
 
   // Should be moved to top
   log_boot("Loading settings");
@@ -167,11 +169,11 @@ void setup() {
   const char * location = settings["location"];
   log_boot("Location: " + String(location));
   
-  // Time - move to krTime!
-  waitForSync();
-  const char * timeZone = settings["clock"]["timezone"];
-  localTimezone.setLocation(timeZone);
-  log_boot("Timezone:" + String(timeZone));
+  // Time 
+  time_init();
+  time_waitForSync();
+  const char * tz = settings["clock"]["timezone"];
+  log_boot("Timezone:" + String(tz));
 
 
 
@@ -209,23 +211,18 @@ void setup() {
 
   delay(1000);
 
-  
-
 
   // Tickers
   ticker_100ms_ref.attach(0.1, ticker_100ms);
   ticker_1000ms_ref.attach(1.0, ticker_1000ms);
   ticker_30min_ref.attach(1.0 * 1800, ticker_30min);
+  ticker_1min_ref.attach(1.0 * 60, ticker_1min);
 
+  flags.frontPanel.volumePotChanged = true;
 
   // Debug log on main screen
   log_debug_init();
 }
-
-//uint8_t hour;
-//uint8_t secs;
-
-//uint8_t stationIndex = 0;
 
 uint32_t prev_millis = 0;
 
@@ -254,14 +251,15 @@ void loop()
       // Clock
       u8g2.setFont(FONT_CLOCK);
       u8g2.setCursor(POSX_CLOCK, POSY_CLOCK);
-      u8g2.print(u8x8_u8toa(localTimezone.hour(),2)); 
+      u8g2.print(u8x8_u8toa(information.hour, 2)); 
       u8g2.drawStr(POSX_CLOCK + 30, POSY_CLOCK - 2, ":");
       u8g2.setCursor(POSX_CLOCK + 39, POSY_CLOCK);
-      u8g2.print(u8x8_u8toa(localTimezone.minute(),2));
+      u8g2.print(u8x8_u8toa(information.minute, 2));
       
       // Date
       u8g2.setFont(FONT_S);
-      u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (localTimezone.dateTime("D d M")).c_str());
+     // u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (localTimezone.dateTime("D d M")).c_str());
+      u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (information.dateMid).c_str());
 
 
       // Sound mode / Station 
@@ -272,7 +270,7 @@ void loop()
           u8g2.drawStr(2, 62, "(Off)");
           break;
         case SOUNDMODE_WEBRADIO:
-          u8g2.drawStr(2, 62, (information.webRadio.stationName).c_str());
+          u8g2.drawStr(2, 62, (String(information.webRadio.stationIndex + 1) + "/" + String(information.webRadio.stationCount) + " " + (information.webRadio.stationName)).c_str());
           break;
         case SOUNDMODE_BLUETOOTH:
           u8g2.drawStr(2, 62, "Bluetooth");
@@ -301,6 +299,13 @@ void loop()
     information.system.wifiRSSI = WiFi.RSSI();
   }
 
+  // Execute stuff every minute
+  if(flags.main.passed1min)
+  {
+    flags.main.passed1min = false;
+    time_update();
+  }
+
   // Execute stuff every 30 minutes
   if(flags.main.passed30min)
   {
@@ -326,8 +331,26 @@ void loop()
   if (flags.frontPanel.volumePotChanged)
   {
     flags.frontPanel.volumePotChanged = false;
-    player.setVolume(log(front_pot_vol + 1) / log(127) * 100);
-    Serial.println(front_pot_vol);
+
+    if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+    {
+      player.setVolume(log(front_pot_vol + 1) / log(127) * 100);
+      Serial.println(front_pot_vol);
+    }
+    else if(audioplayer_soundMode == SOUNDMODE_BLUETOOTH)
+    {
+      uint16_t rec_gain = 1; // 1024 = 1.0x digital gain! - checken of setVolume() ook werkt bij recording mode.
+      if(front_pot_vol == 0)
+      {
+        rec_gain = 1;
+      }
+
+      else rec_gain = front_pot_vol * 8 * 4 * 2;
+      //player.setVolume(100);
+      player.writeRegister(0xD, rec_gain); // recording gian
+      Serial.println("rec_gain: " + String(rec_gain));
+    }
+    
     
   //  printLogLine("Volume: " + String(front_pot_vol));
     log_debug("Volume: " + String(front_pot_vol));

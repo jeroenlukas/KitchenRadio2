@@ -2,6 +2,7 @@
 
 #include "logger.h"
 #include "configuration/config.h"
+#include "information/krInfo.h"
 #include "main.h"
 #include "flags.h"
 //#include "configMisc.h"
@@ -62,7 +63,7 @@ void log_debug(String line)
 // Should only be called from u8g2 draw loop!
 void log_debug_print()
 {
-    u8g2log_debug.print(logline);
+    u8g2log_debug.print(information.timeShort + " " + logline);
 }
 
 void log_debug_draw()

@@ -31,11 +31,11 @@
 // Log - note: these values are not pixels but the number of characters!
 #define LOG_BOOT_WIDTH 40
 #define LOG_BOOT_HEIGHT 10
-#define LOG_DEBUG_WIDTH 23
+#define LOG_DEBUG_WIDTH 24
 #define LOG_DEBUG_HEIGHT 9
 
 // Log position (in pixels)
-#define LOG_DEBUG_POSX  90
+#define LOG_DEBUG_POSX  80
 #define LOG_DEBUG_POSY  0
 
 // Fonts

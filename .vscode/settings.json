@@ -10,6 +10,7 @@
         "limits": "cpp",
         "type_traits": "cpp",
         "typeinfo": "cpp",
-        "*.plg": "cpp"
+        "*.plg": "cpp",
+        "bitset": "cpp"
     }
 }

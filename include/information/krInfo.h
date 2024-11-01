@@ -4,7 +4,10 @@
 class Information {
     public:
 
+        int hour;
+        int minute;
         String timeShort;
+        String dateMid;
 
 
         struct System
