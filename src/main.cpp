@@ -257,22 +257,32 @@ void loop()
       
       // Date
       u8g2.setFont(FONT_S);
-     // u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (localTimezone.dateTime("D d M")).c_str());
       u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (information.dateMid).c_str());
 
+      // Misc
+      u8g2.setFont(FONT_S);
+      u8g2.drawStr(POSX_CLOCK + 30, 60, ("LDR: " + String(information.system.ldr) + "%").c_str());
 
       // Sound mode / Station 
-      u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+      
       switch(audioplayer_soundMode)
       {
         case SOUNDMODE_OFF:
-          u8g2.drawStr(2, 62, "(Off)");
+        
+          u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+          u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "(Off)");
           break;
         case SOUNDMODE_WEBRADIO:
-          u8g2.drawStr(2, 62, (String(information.webRadio.stationIndex + 1) + "/" + String(information.webRadio.stationCount) + " " + (information.webRadio.stationName)).c_str());
+          u8g2.setFont(u8g2_font_siji_t_6x10);
+          u8g2.drawGlyph(POSX_AUDIO_ICON, POSY_AUDIO_ICON, 0xe1d7);
+          u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+          u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, (String(information.webRadio.stationIndex + 1) + "/" + String(information.webRadio.stationCount) + " " + (information.webRadio.stationName)).c_str());
           break;
         case SOUNDMODE_BLUETOOTH:
-          u8g2.drawStr(2, 62, "Bluetooth");
+          u8g2.setFont(u8g2_font_siji_t_6x10);
+          u8g2.drawGlyph(POSX_AUDIO_ICON, POSY_AUDIO_ICON, 94);
+          u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+          u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "Bluetooth");
           break;
       }
 
@@ -292,10 +302,8 @@ void loop()
   {
     flags.main.passed1000ms = false;
 
-    webserver_notify_clients();
-
     front_read_ldr();
-    Serial.println("Ldr: "  + String(information.system.ldr));
+    //Serial.println("Ldr: "  + String(information.system.ldr) + "%");
 
     information.system.uptimeSeconds++;
     information.system.wifiRSSI = WiFi.RSSI();

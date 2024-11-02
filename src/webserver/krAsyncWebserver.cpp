@@ -13,7 +13,7 @@ AsyncWebServer server(80);
 
 // Create a WebSocket object
 AsyncWebSocket ws("/ws");
-
+/*
 void webserver_notify_clients(void) {
     String jsonString;
     DynamicJsonDocument doc(1024);
@@ -22,9 +22,7 @@ void webserver_notify_clients(void) {
 
     //doc["kr-version"] = kr_version;
 
-    doc["system-uptimeSeconds"] = information.system.uptimeSeconds;
-    doc["system-rssi"] = information.system.wifiRSSI;
-
+    
     //sprintf(rounded, "%.1f", information.weather.temperature);
     //doc["weather-temperature"] = rounded;
     //sprintf(rounded, "%.1f", information.weather.windSpeedKmh);
@@ -35,6 +33,43 @@ void webserver_notify_clients(void) {
     serializeJson(doc, jsonString);
     
     ws.textAll(jsonString);
+}*/
+
+void sendValuesAudio()
+{
+  String jsonString;
+  DynamicJsonDocument doc(1024);
+
+  doc["audioplayer-volume"] = information.audioPlayer.volume;
+
+  serializeJson(doc, jsonString);
+  ws.textAll(jsonString);
+}
+
+void sendValuesSystem()
+{
+  String jsonString;
+  DynamicJsonDocument doc(1024);
+
+  doc["system-uptimeSeconds"] = information.system.uptimeSeconds;
+  doc["system-rssi"] = information.system.wifiRSSI;
+  doc["system-ldr"]  = information.system.ldr;
+
+
+  serializeJson(doc, jsonString);
+  ws.textAll(jsonString);
+}
+
+void sendValuesWeather()
+{
+  String jsonString;
+  DynamicJsonDocument doc(1024);
+
+  doc["weather-temperature"] = information.weather.temperature;
+  doc["weather-windspeedkmh"] = information.weather.windSpeedKmh;
+
+  serializeJson(doc, jsonString);
+  ws.textAll(jsonString);
 }
 
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
@@ -54,7 +89,19 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       {
         flags.frontPanel.buttonRadioPressed = true;
       }
-      
+
+      else if(message == "getValuesAudio")
+      {
+        sendValuesAudio();
+      }
+      else if(message == "getValuesSystem")
+      {
+        sendValuesSystem();
+      }
+      else if(message == "getValuesWeather")
+      {
+        sendValuesWeather();
+      }
   }
 }
 

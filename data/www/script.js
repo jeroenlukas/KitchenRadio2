@@ -9,8 +9,18 @@ function onload(event) {
     initButtons();
 }
 
-function getReadings(){
-    websocket.send("getReadings");
+
+
+function getValuesHome()
+{
+    websocket.send("getValuesAudio");
+    websocket.send("getValuesWeather");
+}
+
+
+function getValuesSystem()
+{
+    websocket.send("getValuesSystem");
 }
 
 function initWebSocket() {
@@ -23,8 +33,22 @@ function initWebSocket() {
 
 // When websocket is established, call the getReadings() function
 function onOpen(event) {
-    console.log('Connection opened');
-    getReadings();
+    console.log('Connection opened');    
+
+    console.log("path : " + window.location.pathname);
+
+    if(window.location.pathname == "/")
+    {
+        // Home
+        let interval = setInterval(() => getValuesHome(), 1000);
+    }
+    else if(window.location.pathname == "/settings")
+    {
+        // Settings
+        let interval = setInterval(() => getValuesSystem(), 1000);
+    }
+
+    
 }
 
 function onClose(event) {

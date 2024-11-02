@@ -135,7 +135,8 @@ void front_multibuttons_loop()
 
 void front_read_ldr()
 {
-    information.system.ldr = analogRead(LDR) << 4;
+    uint16_t adc = 4095 - analogRead(LDR);
+    information.system.ldr = map(adc, 0, 4095, 0, 100);
 }
 
 void front_read_buttons()

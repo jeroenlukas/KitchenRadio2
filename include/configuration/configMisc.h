@@ -41,7 +41,7 @@
 
 // Fonts
 // https://github.com/olikraus/u8g2/wiki/fntgrp
-#define FONT_CLOCK              u8g2_font_logisoso24_tf
+#define FONT_CLOCK              u8g2_font_luBIS18_tf //u8g2_font_logisoso24_tf
 #define U8LOG_FONT              u8g2_font_tom_thumb_4x6_mf
 #define FONT_BOOTLOG
 #define FONT_DEBUGLOG
@@ -50,5 +50,10 @@
 // Widget positions
 #define POSX_CLOCK              186
 #define POSY_CLOCK              26
+
+#define POSX_AUDIO_ICON         2
+#define POSY_AUDIO_ICON         62
+#define POSX_AUDIO              22
+#define POSY_AUDIO              62
 
 #endif

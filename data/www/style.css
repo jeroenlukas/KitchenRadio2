@@ -57,9 +57,9 @@ body {
 .card-title {
     font-size: 1.2rem;
     font-weight: bold;
-    color: #034078
+    color: #222
 }
 .reading {
     font-size: 1.2rem;
-    color: #1282A2;
+    color: #444;
 }
