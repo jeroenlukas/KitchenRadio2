@@ -38,6 +38,7 @@
 //Via tutorial from 
 SPIClass *hspi = NULL;
 
+Ticker ticker_10ms_ref;
 Ticker ticker_100ms_ref;
 Ticker ticker_1000ms_ref;
 Ticker ticker_1min_ref;
@@ -45,11 +46,14 @@ Ticker ticker_30min_ref;
 
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
 
+void ticker_10ms()
+{
+  front_read_pots();
+}
 
 void ticker_100ms()
 {
-    front_read_buttons();
-    front_read_pots();
+  front_read_buttons();  
 }
 
 void ticker_1000ms()
@@ -67,22 +71,16 @@ void ticker_1min()
   flags.main.passed1min = true;
 }
 
-void setup() {
-  // put your setup code here, to run once:
-  
+void setup() 
+{
   Serial.begin(115200);
   Serial.print("KitchenRadio 2");
-
-  // Bluetooth module
-  //log_boot("Bluetooth init");
-  // Start it early to power it off
-  
 
 
   hspi = new SPIClass(HSPI);
   hspi->begin(HSPI_SCK, HSPI_MISO, HSPI_MOSI, HSPI_CS);
 
-  frontpanel_setup();
+  front_init();
 
   u8g2.begin(); 
   u8g2.setFont(U8LOG_FONT);
@@ -213,6 +211,7 @@ void setup() {
 
 
   // Tickers
+  ticker_10ms_ref.attach(0.01, ticker_10ms);
   ticker_100ms_ref.attach(0.1, ticker_100ms);
   ticker_1000ms_ref.attach(1.0, ticker_1000ms);
   ticker_30min_ref.attach(1.0 * 1800, ticker_30min);
@@ -295,6 +294,9 @@ void loop()
 
     webserver_notify_clients();
 
+    front_read_ldr();
+    Serial.println("Ldr: "  + String(information.system.ldr));
+
     information.system.uptimeSeconds++;
     information.system.wifiRSSI = WiFi.RSSI();
   }
@@ -334,26 +336,27 @@ void loop()
 
     if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
     {
-      player.setVolume(log(front_pot_vol + 1) / log(127) * 100);
-      Serial.println(front_pot_vol);
+      player.setVolume(log(information.audioPlayer.volume + 1) / log(127) * 100);
+      Serial.println(information.audioPlayer.volume);
     }
     else if(audioplayer_soundMode == SOUNDMODE_BLUETOOTH)
     {
       uint16_t rec_gain = 1; // 1024 = 1.0x digital gain! - checken of setVolume() ook werkt bij recording mode.
-      if(front_pot_vol == 0)
+      if(information.audioPlayer.volume == 0)
       {
         rec_gain = 1;
       }
 
-      else rec_gain = front_pot_vol * 8 * 4 * 2;
-      //player.setVolume(100);
+      else rec_gain = information.audioPlayer.volume * 10;
+      //else rec_gain = (log(front_pot_vol + 1) / log(127)) *100 * 8;
+    //  player.setVolume(log(front_pot_vol + 1) / log(127) * 100);
       player.writeRegister(0xD, rec_gain); // recording gian
       Serial.println("rec_gain: " + String(rec_gain));
     }
     
     
   //  printLogLine("Volume: " + String(front_pot_vol));
-    log_debug("Volume: " + String(front_pot_vol));
+    log_debug("Volume: " + String(information.audioPlayer.volume));
   }
 
   if(flags.frontPanel.buttonOffPressed)
@@ -373,9 +376,7 @@ void loop()
       flags.frontPanel.buttonRadioPressed = false;
       Serial.println("radio");
       log_debug("Radio");
-      //set_sound_mode(SOUNDMODE_WEBRADIO);
 
-      //webradio_open_url(host, path);
       audioplayer_set_soundmode(SOUNDMODE_WEBRADIO);
 
       front_led_on(LED_WEBRADIO);

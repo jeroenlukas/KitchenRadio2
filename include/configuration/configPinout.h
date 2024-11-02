@@ -29,7 +29,6 @@
 // Buttons
 #define BUTTONS     4
 
-
 // Pot meters
 #define POT_VOLUME   5
 
@@ -37,5 +36,8 @@
 #define ROTARY_A    38
 #define ROTARY_B    39
 #define BUTTON_ENCODER  40
+
+// LDR
+#define LDR             17
 
 #endif

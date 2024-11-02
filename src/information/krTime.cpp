@@ -27,7 +27,7 @@ void time_update()
 {
     information.hour = localTimezone.hour(TIME_NOW, LOCAL_TIME);
     information.minute = localTimezone.minute(TIME_NOW, LOCAL_TIME);
-    information.timeShort = String(information.hour) + ":" + String(information.minute);
+    information.timeShort = String(u8x8_u8toa(information.hour, 2)) + ":" + String(u8x8_u8toa(information.minute, 2));
     information.dateMid = localTimezone.dateTime("D j M");
     Serial.println(information.timeShort);
 }

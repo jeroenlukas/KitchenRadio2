@@ -5,6 +5,7 @@
 #include <RotaryEncoder.h>
 #include "configuration/config.h"
 #include "hmi/krFrontPanel.h"
+#include "information/krInfo.h"
 #include "flags.h"
 
 // To calibrate button ADC values
@@ -81,7 +82,7 @@ void front_led_off(uint8_t led)
     digitalWrite(led, 0);
 }
 
-void frontpanel_setup()
+void front_init()
 {
     // LEDs
     pinMode(LED_WEBRADIO, OUTPUT);
@@ -89,6 +90,8 @@ void frontpanel_setup()
     pinMode(LED_ALARM, OUTPUT);
     pinMode(LED_LAMP, OUTPUT);
     
+    // LDR
+    pinMode(LDR, INPUT);
 
     // Buttons
     btn_off.onPress(button_press_handler);
@@ -128,6 +131,11 @@ void frontpanel_setup()
 void front_multibuttons_loop()
 {
     buttonmanager.loop();
+}
+
+void front_read_ldr()
+{
+    information.system.ldr = analogRead(LDR) << 4;
 }
 
 void front_read_buttons()
@@ -192,16 +200,39 @@ void front_read_encoder()
 
 void front_read_pots()
 {
-    adc_pot_vol = (4095 - analogRead(POT_VOLUME)) >> 5;
+    uint16_t adc_pot_vol;
+    static uint8_t smaIndex = 0;
+    static uint16_t sma[POT_MA_SIZE]; // Simple moving average with 10 values
+    uint16_t sma_avg = 0;
+    static uint16_t prev_sma_avg = 0;
 
-  //  Serial.print(adc_pot_vol);
+    // 12 bit (0-4095) value read from ADC
+    adc_pot_vol = 4095 - analogRead(POT_VOLUME);
 
-    if (adc_pot_vol < (prev_adc_pot_vol - POT_HYST) || adc_pot_vol > (prev_adc_pot_vol + POT_HYST))
+    sma[smaIndex++] = adc_pot_vol;
+
+    if(smaIndex >= POT_MA_SIZE)
     {
-        flags.frontPanel.volumePotChanged = true;
-        front_pot_vol = adc_pot_vol;
-    }
+        // Calculate average
+        uint32_t sma_sum = 0;
+        for(int i = 0; i < POT_MA_SIZE; i++)
+        {
+            sma_sum += sma[i];
+        }
 
-    prev_adc_pot_vol = adc_pot_vol;
+        sma_avg = sma_sum / POT_MA_SIZE;
+
+        if (sma_avg < (prev_sma_avg - POT_HYSTERESIS) || sma_avg > (prev_sma_avg + POT_HYSTERESIS))
+        {
+            information.audioPlayer.volume = map(sma_avg, 0, 4095, 0, 100);
+            //Serial.println("sma_avg: " + String(sma_avg) + " prev: " + String(prev_sma_avg));
+            flags.frontPanel.volumePotChanged = true;
+        }
+        
+        
+        
+        prev_sma_avg = sma_avg;
+        smaIndex = 0;
+    }
     
 }

@@ -4,15 +4,16 @@
 #define FORMAT_LITTLEFS_IF_FAILED true
 
 // Volume pot hysteresis
-#define POT_HYST    1
+#define POT_HYSTERESIS          20
+#define POT_MA_SIZE             10
 
 // Circular buffer size in PSRAM
-#define CIRCBUFFER_SIZE 2 * 1024 * 1024 // 2 MB
+#define CIRCBUFFER_SIZE         2 * 1024 * 1024 // 2 MB
 
 // Minimum no. of bytes required in circular buffer to play
 #define CONF_AUDIO_MIN_BYTES    256 * 1024
 
-#define DISPLAY_RETURN_TIME    20 //*100 ms
+//#define DISPLAY_RETURN_TIME     20 //*100 ms
 
 // Multibutton ranges
 #define BTN_ADC_OFF_MIN         3400
@@ -29,14 +30,14 @@
 #define BTN_ADC_LAMP_MAX        1150
 
 // Log - note: these values are not pixels but the number of characters!
-#define LOG_BOOT_WIDTH 40
-#define LOG_BOOT_HEIGHT 10
-#define LOG_DEBUG_WIDTH 24
-#define LOG_DEBUG_HEIGHT 9
+#define LOG_BOOT_WIDTH          40
+#define LOG_BOOT_HEIGHT         10
+#define LOG_DEBUG_WIDTH         24
+#define LOG_DEBUG_HEIGHT        9
 
 // Log position (in pixels)
-#define LOG_DEBUG_POSX  80
-#define LOG_DEBUG_POSY  0
+#define LOG_DEBUG_POSX          80
+#define LOG_DEBUG_POSY          0
 
 // Fonts
 // https://github.com/olikraus/u8g2/wiki/fntgrp
@@ -47,7 +48,7 @@
 #define FONT_S                  u8g2_font_simple1_tf
 
 // Widget positions
-#define POSX_CLOCK 186
-#define POSY_CLOCK 26
+#define POSX_CLOCK              186
+#define POSY_CLOCK              26
 
 #endif

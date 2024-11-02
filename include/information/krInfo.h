@@ -15,6 +15,7 @@ class Information {
             uint32_t uptimeSeconds;
             int8_t wifiRSSI;
             String IPAddress;
+            uint8_t ldr;
         };
         struct AudioPlayer
         {

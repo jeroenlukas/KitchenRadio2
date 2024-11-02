@@ -48,6 +48,7 @@ void audioplayer_set_soundmode(uint8_t soundMode)
             break;
         case SOUNDMODE_BLUETOOTH:
             kcx_stop();
+
             player.writeRegister(0x0, 0x4804 ); // default + reset
             break;
        // default:
@@ -67,27 +68,31 @@ void audioplayer_set_soundmode(uint8_t soundMode)
         case SOUNDMODE_BLUETOOTH:
             kcx_start();
 
-            player.setVolume(log(100 + 1) / log(127) * 100);
+            player.setVolume(100);
+            player.setVolume( 100);
+            delay(10);
 
             uint16_t sci_mode = player.read_register(0x00);
             Serial.println("sci_mode: " + String(sci_mode));
             
-            player.writeRegister(0xC, 44100); // aictrl0 samp rate
-            player.writeRegister(0xD, 1024); // aictrl1, gain. controlled by volume pot
-            player.writeRegister(0xE, 1024); // aictrl2 max autogain amp, not used
-            player.writeRegister(0xF, 1); // aictrl3 mode
-
+            player.writeRegister(0xC, 44100);   // aictrl0 samp rate
+            player.writeRegister(0xD, 1024);    // aictrl1, gain. controlled by volume pot
+            player.writeRegister(0xE, 1024);    // aictrl2 max autogain amp, not used
+            player.writeRegister(0xF, 1);       // aictrl3 mode
+            player.setVolume(100);
             player.writeRegister(0x0, sci_mode | (1 << 12) | (1 << 14) | (1 << 2));            
-            //player.loadUserCode()
             delay(10);
+            player.setVolume(100);
             sci_mode = player.read_register(0x00);
             Serial.println("new sci_mode: " + String(sci_mode));
             break;
     }
 
+    // Force volume to be updated
+    audioplayer_soundMode = soundMode;
     flags.frontPanel.volumePotChanged = true;
 
-    audioplayer_soundMode = soundMode;
+    
 }
 
 void IRAM_ATTR audioplayer_feedbuffer()
