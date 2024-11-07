@@ -24,6 +24,8 @@ class Information {
             int sampleRate;
 
             int volume;
+
+            int bluetoothMode;
         };
 
         struct Webradio

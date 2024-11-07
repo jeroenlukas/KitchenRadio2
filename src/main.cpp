@@ -173,7 +173,7 @@ void setup()
   const char * tz = settings["clock"]["timezone"];
   log_boot("Timezone:" + String(tz));
 
-
+  
 
   delay(300);
 
@@ -283,6 +283,24 @@ void loop()
           u8g2.drawGlyph(POSX_AUDIO_ICON, POSY_AUDIO_ICON, 94);
           u8g2.setFont(u8g2_font_lastapprenticebold_tr);
           u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "Bluetooth");
+          switch(information.audioPlayer.bluetoothMode)
+          {
+            case KCX_OFF:
+              u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "Off");
+              break;
+            case KCX_NOTCONNECTED:
+              u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(not connected)");
+              break;
+            case KCX_PAUSED:
+              u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(paused)");
+              break;
+            case KCX_PLAYING:
+              u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(playing)");
+              break;
+            case KCX_UNKNOWN:            
+              u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(?)");
+              break;
+          }
           break;
       }
 
@@ -303,6 +321,8 @@ void loop()
     flags.main.passed1000ms = false;
 
     front_read_ldr();
+
+    kcx_getstatus();
     //Serial.println("Ldr: "  + String(information.system.ldr) + "%");
 
     information.system.uptimeSeconds++;
@@ -324,6 +344,8 @@ void loop()
     weather_retrieve();
   }
  
+  kcx_read();
+
   webserver_cleanup_clients();
   
   front_multibuttons_loop();
@@ -356,8 +378,7 @@ void loop()
       }
 
       else rec_gain = information.audioPlayer.volume * 10;
-      //else rec_gain = (log(front_pot_vol + 1) / log(127)) *100 * 8;
-    //  player.setVolume(log(front_pot_vol + 1) / log(127) * 100);
+      player.setVolume(100);
       player.writeRegister(0xD, rec_gain); // recording gian
       Serial.println("rec_gain: " + String(rec_gain));
     }

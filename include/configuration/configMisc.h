@@ -41,7 +41,7 @@
 
 // Fonts
 // https://github.com/olikraus/u8g2/wiki/fntgrp
-#define FONT_CLOCK              u8g2_font_luBIS18_tf //u8g2_font_logisoso24_tf
+#define FONT_CLOCK              u8g2_font_logisoso24_tf
 #define U8LOG_FONT              u8g2_font_tom_thumb_4x6_mf
 #define FONT_BOOTLOG
 #define FONT_DEBUGLOG

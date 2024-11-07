@@ -43,34 +43,36 @@ void audioplayer_set_soundmode(uint8_t soundMode)
     {
         case SOUNDMODE_OFF:
             break;
+
         case SOUNDMODE_WEBRADIO:
             webradio_stop();
             break;
+
         case SOUNDMODE_BLUETOOTH:
             kcx_stop();
 
             player.writeRegister(0x0, 0x4804 ); // default + reset
             break;
-       // default:
-       //     break;
     }
 
     // Switch to the new soundmode
     switch(soundMode)
     {
         case SOUNDMODE_OFF:
-
             break;
+
         case SOUNDMODE_WEBRADIO:
-           // player.setVolume(log(front_pot_vol + 1) / log(127) * 100);
             webradio_open_station(0);
             break;
+
         case SOUNDMODE_BLUETOOTH:
             kcx_start();
 
-            player.setVolume(100);
-            player.setVolume( 100);
             delay(10);
+            //  Do a soft reset, otherwise the volume will be at a weird setting when switching to Bluetooth
+            player.setVolume(100);
+            player.softReset();
+            delay(300);
 
             uint16_t sci_mode = player.read_register(0x00);
             Serial.println("sci_mode: " + String(sci_mode));
