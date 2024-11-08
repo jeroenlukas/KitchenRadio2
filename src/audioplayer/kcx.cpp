@@ -57,20 +57,12 @@ void kcx_read()
 {
     char rxBuf[32];
     String str;
-    if(serialKcx.available())
+    if(serialKcx.available() > 5)
     {
-        serialKcx.readBytes(rxBuf, serialKcx.available()); //TODO change this into a state machine
-        Serial.println((rxBuf));
-        str = String(rxBuf);
-        
-
-        if(str.endsWith("\n"))
-        {
-            str.trim();
-            parseReply(str);
-        }
-
-
+       String command = serialKcx.readStringUntil('\n');
+       command.trim();
+       Serial.println(command);
+       parseReply(command);
     }
 }
 
@@ -93,4 +85,9 @@ void kcx_start()
     kcx_connectPin(0);
     delay(100);
     kcx_connectPin(1);
+}
+
+void kcx_pausePlay()
+{
+    serialKcx.write("AT+PAUSE\r\n");
 }

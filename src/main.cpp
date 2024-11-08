@@ -30,6 +30,7 @@
 #include "information/krTime.h"
 #include "configuration/constants.h"
 #include "audioplayer/kcx.h"
+#include "hmi/krMonitor.h"
 
 #include "esp_system.h"
 #include "esp_himem.h"
@@ -83,7 +84,7 @@ void setup()
   front_init();
 
   u8g2.begin(); 
-  u8g2.setFont(U8LOG_FONT);
+  u8g2.setFont(FONT_BOOTLOG);
 
   u8g2.setContrast(1);
 
@@ -241,11 +242,11 @@ void loop()
 
       // Weather
       u8g2.setFont(FONT_S);
-      u8g2.drawStr(3, 8, (information.weather.stateShort).c_str());
-      u8g2.drawStr(3, 17, ("Temp: " + String(information.weather.temperature) + "\xb0" + "C").c_str());
-      u8g2.drawStr(3, 26, ("Wind: " + String(information.weather.windSpeedKmh) + " kmh").c_str());
-      u8g2.drawStr(3, 35, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
-      u8g2.drawStr(3, 44, ("Buf: " + String(circBuffer.available()) + " B").c_str());
+      u8g2.drawStr(3, 6, (information.weather.stateShort).c_str());
+      u8g2.drawStr(3, 14, ("Temp: " + String(information.weather.temperature) + "\xb0" + "C").c_str());
+      u8g2.drawStr(3, 22, ("Wind: " + String(information.weather.windSpeedKmh) + " kmh").c_str());
+      u8g2.drawStr(3, 30, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
+      u8g2.drawStr(3, 38, ("Buf: " + String(circBuffer.available()) + " B").c_str());
 
       // Clock
       u8g2.setFont(FONT_CLOCK);
@@ -263,6 +264,8 @@ void loop()
       u8g2.setFont(FONT_S);
       u8g2.drawStr(POSX_CLOCK + 30, 60, ("LDR: " + String(information.system.ldr) + "%").c_str());
 
+      u8g2.drawLine(0, 44, 256, 44);
+
       // Sound mode / Station 
       
       switch(audioplayer_soundMode)
@@ -273,29 +276,32 @@ void loop()
           u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "(Off)");
           break;
         case SOUNDMODE_WEBRADIO:
-          u8g2.setFont(u8g2_font_siji_t_6x10);
-          u8g2.drawGlyph(POSX_AUDIO_ICON, POSY_AUDIO_ICON, 0xe1d7);
+          u8g2.setFont(u8g2_font_open_iconic_all_2x_t);
+          u8g2.drawGlyph(POSX_AUDIO_ICON, POSY_AUDIO_ICON, 84);
           u8g2.setFont(u8g2_font_lastapprenticebold_tr);
           u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, (String(information.webRadio.stationIndex + 1) + "/" + String(information.webRadio.stationCount) + " " + (information.webRadio.stationName)).c_str());
           break;
         case SOUNDMODE_BLUETOOTH:
-          u8g2.setFont(u8g2_font_siji_t_6x10);
+          u8g2.setFont(u8g2_font_open_iconic_all_2x_t);
           u8g2.drawGlyph(POSX_AUDIO_ICON, POSY_AUDIO_ICON, 94);
+
           u8g2.setFont(u8g2_font_lastapprenticebold_tr);
           u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "Bluetooth");
+          u8g2.setFont(u8g2_font_open_iconic_all_2x_t);
           switch(information.audioPlayer.bluetoothMode)
           {
             case KCX_OFF:
-              u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "Off");
+              //u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "Off");
+              u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 285);
               break;
             case KCX_NOTCONNECTED:
-              u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(not connected)");
+              u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 285);
               break;
             case KCX_PAUSED:
-              u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(paused)");
+              u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 210);
               break;
             case KCX_PLAYING:
-              u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(playing)");
+              u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 211);
               break;
             case KCX_UNKNOWN:            
               u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(?)");
@@ -315,6 +321,27 @@ void loop()
   }
 
 
+  
+ 
+  kcx_read();
+
+  webserver_cleanup_clients();
+  
+  front_multibuttons_loop();
+
+  webradio_handle_stream();
+
+  audioplayer_feedbuffer();
+
+  front_read_encoder();
+
+  mon_receiveCommand();
+
+
+
+  // -------------------------=== FLAGS ===--------------------------
+
+  // --------------------------- Tickers ----------------------------
   // Execute stuff every second
   if(flags.main.passed1000ms)
   {
@@ -323,7 +350,6 @@ void loop()
     front_read_ldr();
 
     kcx_getstatus();
-    //Serial.println("Ldr: "  + String(information.system.ldr) + "%");
 
     information.system.uptimeSeconds++;
     information.system.wifiRSSI = WiFi.RSSI();
@@ -343,22 +369,8 @@ void loop()
     log_debug("Weather lookup");
     weather_retrieve();
   }
- 
-  kcx_read();
 
-  webserver_cleanup_clients();
-  
-  front_multibuttons_loop();
-
-  webradio_handle_stream();
-
-  audioplayer_feedbuffer();
-
-  //front_read_buttons();
-
-  front_read_encoder();
-
-  // -------------------------=== FLAGS ===--------------------------
+  // --------------------------- Events ----------------------------
 
   if (flags.frontPanel.volumePotChanged)
   {
@@ -382,43 +394,29 @@ void loop()
       player.writeRegister(0xD, rec_gain); // recording gian
       Serial.println("rec_gain: " + String(rec_gain));
     }
-    
-    
-  //  printLogLine("Volume: " + String(front_pot_vol));
+
     log_debug("Volume: " + String(information.audioPlayer.volume));
   }
 
   if(flags.frontPanel.buttonOffPressed)
   {
       flags.frontPanel.buttonOffPressed = false;
-      //set_sound_mode(SOUNDMODE_OFF);
-      Serial.println("OFF");
-      log_debug("Sound off");
-      //webradio_stop();
+
 
       audioplayer_set_soundmode(SOUNDMODE_OFF);
-      front_led_off(LED_WEBRADIO);
-      front_led_off(LED_BLUETOOTH);
+ 
   }
   if(flags.frontPanel.buttonRadioPressed)
   {
-      flags.frontPanel.buttonRadioPressed = false;
-      Serial.println("radio");
-      log_debug("Radio");
+      flags.frontPanel.buttonRadioPressed = false; 
 
       audioplayer_set_soundmode(SOUNDMODE_WEBRADIO);
-
-      front_led_on(LED_WEBRADIO);
-      front_led_off(LED_BLUETOOTH);
   }
 
   if(flags.frontPanel.buttonBluetoothPressed)
   {
     flags.frontPanel.buttonBluetoothPressed = false;
-    front_led_off(LED_WEBRADIO);
-    front_led_on(LED_BLUETOOTH);
-    log_debug("Bluetooth");
-    Serial.println("bluetooth");
+
     audioplayer_set_soundmode(SOUNDMODE_BLUETOOTH);
   }
 
@@ -445,6 +443,13 @@ void loop()
   if (flags.frontPanel.encoderButtonPressed)
   {
     flags.frontPanel.encoderButtonPressed = false;
+
+    switch(audioplayer_soundMode)
+    {
+      case SOUNDMODE_BLUETOOTH:
+        kcx_pausePlay();
+        break;
+    }
   }
 
   if (flags.frontPanel.encoderTurnLeft)

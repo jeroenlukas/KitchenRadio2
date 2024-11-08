@@ -7,6 +7,7 @@
 #include "hmi/krFrontpanel.h"
 #include "configuration/constants.h"
 #include "audioplayer/kcx.h"
+#include "logger.h"
 #include "flags.h"
 
 VS1053 player(VS1053_CS, VS1053_DCS, VS1053_DREQ);
@@ -38,6 +39,9 @@ void audioplayer_init()
 
 void audioplayer_set_soundmode(uint8_t soundMode)
 {
+    front_led_off(LED_WEBRADIO);
+    front_led_off(LED_BLUETOOTH);
+
     // Current soundmode
     switch(audioplayer_soundMode)
     {
@@ -59,13 +63,18 @@ void audioplayer_set_soundmode(uint8_t soundMode)
     switch(soundMode)
     {
         case SOUNDMODE_OFF:
+            log_debug("Sound off");
             break;
 
         case SOUNDMODE_WEBRADIO:
             webradio_open_station(0);
+            front_led_on(LED_WEBRADIO);
+            log_debug("Radio mode");
             break;
 
         case SOUNDMODE_BLUETOOTH:
+            front_led_on(LED_BLUETOOTH);
+            log_debug("Bluetooth mode");
             kcx_start();
 
             delay(10);

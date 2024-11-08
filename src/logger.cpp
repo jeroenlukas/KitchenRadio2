@@ -68,7 +68,7 @@ void log_debug_print()
 
 void log_debug_draw()
 {
-    u8g2.setFont(U8LOG_FONT);    
+    u8g2.setFont(FONT_DEBUGLOG);    
 
       // Add a log line if needed      
       if(flags.main.updateLog)
