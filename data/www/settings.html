@@ -7,6 +7,19 @@
             <p class="reading">RSSI: <span id="system-rssi"></span> dBm</p>
             <p class="reading">LDR: <span id="system-ldr"></span> &percnt;</p>
         </div>     
+        <div class="card">
+            <p class="card-title">RGB Ring</p>
+            <p>Color:
+            <input data-jscolor="{value:'rgb(51,153,255)', position:'bottom', height:80, backgroundColor:'#333',
+                          palette:'rgb(0,0,0) #fff #808080 #000 #996e36 #f55525 #ffe438 #88dd20 #22e0cd #269aff #bb1cd4',
+                          paletteCols:10, hideOnPaletteClick:true, onChange: 'update(this)'}">
+
+            <script>
+            function update(picker) {
+                colorPickerChanged(picker);
+            }
+            </script>
+        </div>
     </div>
 </div>
         

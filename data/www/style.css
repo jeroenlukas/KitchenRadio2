@@ -22,12 +22,16 @@ h1 {
     }
 }
 
-button{
+button {
     background-color: #da6900;
     color: white;
     border:1px;    
     font-weight: bold;
     padding: 5px;
+}
+
+input {
+    border: 1px;
 }
 
 .header-title {

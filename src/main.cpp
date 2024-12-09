@@ -31,6 +31,8 @@
 #include "configuration/constants.h"
 #include "audioplayer/kcx.h"
 #include "hmi/krMonitor.h"
+#include "hmi/xbmIcons.h"
+#include "hmi/krLamp.h"
 
 #include "esp_system.h"
 #include "esp_himem.h"
@@ -111,7 +113,6 @@ void setup()
 
   
 
-
  
   delay(300);
   // ESP info
@@ -122,9 +123,6 @@ void setup()
   log_boot("CPU freq: " + String(ESP.getCpuFreqMHz()) + " MHz");
   log_boot("Chip model: " + String(ESP.getChipModel()) + " rev " + String(ESP.getChipRevision()));
   delay(300);
-
-
-  
 
 
   information.webRadio.stationCount = webradio_get_num_stations();
@@ -156,7 +154,8 @@ void setup()
   log_boot("\nConnected! (" + (information.system.IPAddress) + ")");
   log_boot("RSSI: " + String(WiFi.RSSI()) + " dBm");
 
-  
+  log_boot("Init led ring");
+  lamp_init();
 
   //log_boot(localTimezone.dateTime("D d M"));
 
@@ -276,14 +275,12 @@ void loop()
           u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "(Off)");
           break;
         case SOUNDMODE_WEBRADIO:
-          u8g2.setFont(u8g2_font_open_iconic_all_2x_t);
-          u8g2.drawGlyph(POSX_AUDIO_ICON, POSY_AUDIO_ICON, 84);
+          u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_radio_width, xbm_radio_height, xbm_radio_bits);
           u8g2.setFont(u8g2_font_lastapprenticebold_tr);
           u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, (String(information.webRadio.stationIndex + 1) + "/" + String(information.webRadio.stationCount) + " " + (information.webRadio.stationName)).c_str());
           break;
         case SOUNDMODE_BLUETOOTH:
-          u8g2.setFont(u8g2_font_open_iconic_all_2x_t);
-          u8g2.drawGlyph(POSX_AUDIO_ICON, POSY_AUDIO_ICON, 94);
+          u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_bluetooth_width, xbm_bluetooth_height, xbm_bluetooth_bits);
 
           u8g2.setFont(u8g2_font_lastapprenticebold_tr);
           u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "Bluetooth");
@@ -437,7 +434,8 @@ void loop()
   if(flags.frontPanel.buttonLampPressed)
   {
     flags.frontPanel.buttonLampPressed = false;
-    log_debug("Lamp");
+    lamp_toggle();
+
   }
 
   if (flags.frontPanel.encoderButtonPressed)

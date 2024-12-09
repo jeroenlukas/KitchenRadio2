@@ -67,6 +67,13 @@ function initButtons() {
     if(eleButtonAudioBluetooth != null) eleButtonAudioBluetooth.addEventListener('click', buttonBluetoothPressed);
 }
 
+function colorPickerChanged(picker)
+{
+    console.log("color picker changed");
+    
+    websocket.send('{"ledring": {"r": ' + Math.round(picker.channel('R')) + ', "g": ' + Math.round(picker.channel('G')) + ', "b": ' + Math.round(picker.channel('B')) + '}}');
+}
+
 function buttonOffPressed(){
     console.log('off pressed');
     websocket.send('buttonOffPressed');

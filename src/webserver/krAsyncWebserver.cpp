@@ -6,6 +6,7 @@
 #include "information/krInfo.h"
 #include "version.h"
 #include "flags.h"
+#include "hmi/krLamp.h"
 
 // https://randomnerdtutorials.com/esp32-websocket-server-sensor/
 
@@ -81,6 +82,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       String message = String((char*)data);
       Serial.printf("received: %s\n", message.c_str());
       
+      // TODO change to json
       if(message == "buttonOffPressed")
       {
         flags.frontPanel.buttonOffPressed = true;
@@ -101,6 +103,14 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       else if(message == "getValuesWeather")
       {
         sendValuesWeather();
+      }
+      else if(message.startsWith("{\"ledring"))
+      {
+        DynamicJsonDocument doc(1024);
+
+        deserializeJson(doc, message);
+
+        lamp_setcolor(doc["ledring"]["r"],doc["ledring"]["g"],doc["ledring"]["b"],255);
       }
   }
 }

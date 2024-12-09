@@ -55,4 +55,7 @@
 #define POSX_AUDIO              22
 #define POSY_AUDIO              62
 
+// LED ring
+#define LED_RING_NUM_LEDS       24
+
 #endif
