@@ -8,6 +8,8 @@
 #include "information/krWeather.h"
 #include "information/krTime.h"
 
+
+/*
 void mon_parseCommand(String command);
 
 void mon_receiveCommand()
@@ -45,4 +47,4 @@ void mon_parseCommand(String command)
         Serial.println("Unknown command");
     }
 
-}
+}*/

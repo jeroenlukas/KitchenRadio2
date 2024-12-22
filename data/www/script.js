@@ -65,13 +65,16 @@ function initButtons() {
     
     eleButtonAudioBluetooth = document.getElementById('button_audio_bluetooth');
     if(eleButtonAudioBluetooth != null) eleButtonAudioBluetooth.addEventListener('click', buttonBluetoothPressed);
+
+    eleButtonConsole = document.getElementById('button_console');
+    if(eleButtonConsole != null) eleButtonConsole.addEventListener('click', buttonConsolePressed);
 }
 
 function colorPickerChanged(picker)
 {
     console.log("color picker changed");
     
-    websocket.send('{"ledring": {"r": ' + Math.round(picker.channel('R')) + ', "g": ' + Math.round(picker.channel('G')) + ', "b": ' + Math.round(picker.channel('B')) + '}}');
+    websocket.send('{"ledring": {"h": ' + picker.channel('H')/360.0 + ', "s": ' +picker.channel('S')/100.0 + ', "v": ' + picker.channel('V')/100.0 + '}}');
 }
 
 function buttonOffPressed(){
@@ -85,6 +88,12 @@ function buttonWebradioPressed(){
 
 function buttoBluetoothPressed(){
     websocket.send('buttonBluetoothPressed');
+}
+
+function buttonConsolePressed()
+{    
+    console.log('{"console":{"command": "' + document.getElementById('text_console').value + '"}}');
+    websocket.send('{"console":{"command": "' + document.getElementById('text_console').value + '"}}');
 }
 
 // Function that receives the message from the ESP32 with the readings

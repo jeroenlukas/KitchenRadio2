@@ -3,6 +3,7 @@
 #include <NeoPixelBus.h>
 #include "configuration/config.h"
 #include "logger.h"
+#include "information/krInfo.h"
 
 const uint16_t PixelCount = LED_RING_NUM_LEDS; // this example assumes 4 pixels, making it smaller will cause a failure
 const uint8_t PixelPin = PIN_LED_RING;  // make sure to set this to the correct pin, ignored for Esp8266
@@ -39,6 +40,22 @@ void lamp_init()
     
 }
 
+void lamp_update()
+{
+    RgbColor rgb(0,0,0);
+    HslColor hsl(rgb);
+
+    hsl.H = information.lamp.hue;
+    hsl.S = information.lamp.saturation;
+    hsl.L = information.lamp.lightness;
+
+    for(int i = 0; i < LED_RING_NUM_LEDS; i++)
+    {
+        strip.SetPixelColor(i, hsl);
+    }
+    strip.Show();
+}
+
 void lamp_toggle()
 {
     if(lamp_state)
@@ -47,15 +64,45 @@ void lamp_toggle()
     }
     else
     {
-        lamp_setcolor(255, 100, 25, 100);
+        lamp_setlightness(0.5);
+        lamp_update();
     }
 }
 
 void lamp_off()
 {
-    lamp_setcolor(0, 0, 0, 0);    
+    //lamp_setcolor(0, 0, 0, 0);    
+    lamp_setlightness(0.0);    
 }
 
+// H, S values (0.0 - 1.0)
+// L should be limited to between (0.0 - 0.5)
+void lamp_sethue(float hue)
+{
+    
+    information.lamp.hue = constrain(hue, 0.0, 1.0);
+    lamp_update();    
+}
+
+void lamp_setsaturation(float saturation)
+{
+    
+    information.lamp.saturation = constrain(saturation, 0.0, 1.0);
+    lamp_update();
+}
+
+void lamp_setlightness(float lightness)
+{
+    
+    information.lamp.lightness = constrain(lightness, 0.0, 0.5);
+    lamp_update();
+}
+
+
+
+
+
+// DEPRECATED
 void lamp_setcolor(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness)
 {
     if (brightness == 0)
@@ -79,13 +126,18 @@ void lamp_setcolor(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness)
     Serial.print("R:");
     Serial.print(r);
 
+    //information.lamp.r = r;
+   /// information.lamp.g = g;
+   // information.lamp.b = b;
+   // information.lamp.brightness = brightness;
+    
+
     RgbColor rgb(r, g, b);
     HslColor hsl(rgb);
 
-    for(int i = 0; i < LED_RING_NUM_LEDS; i++)
-    {
-        strip.SetPixelColor(i, hsl);
-    }
+    information.lamp.hue = hsl.H;
+    information.lamp.saturation = hsl.S;
+    information.lamp.lightness = brightness_div;
 
-    strip.Show();
+    lamp_update();
 }

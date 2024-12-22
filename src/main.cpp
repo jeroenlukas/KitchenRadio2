@@ -30,9 +30,10 @@
 #include "information/krTime.h"
 #include "configuration/constants.h"
 #include "audioplayer/kcx.h"
-#include "hmi/krMonitor.h"
+//#include "hmi/krMonitor.h"
 #include "hmi/xbmIcons.h"
 #include "hmi/krLamp.h"
+#include "hmi/krCLI.h"
 
 #include "esp_system.h"
 #include "esp_himem.h"
@@ -79,6 +80,7 @@ void setup()
   Serial.begin(115200);
   Serial.print("KitchenRadio 2");
 
+  cli_init();
 
   hspi = new SPIClass(HSPI);
   hspi->begin(HSPI_SCK, HSPI_MISO, HSPI_MOSI, HSPI_CS);
@@ -332,8 +334,42 @@ void loop()
 
   front_read_encoder();
 
-  mon_receiveCommand();
+  //mon_receiveCommand();
+  if (Serial.available()) 
+  {
+    static char commandbuffer[100] = "";
+    static uint8_t commandbuffer_idx = 0;
 
+    char inp = Serial.read();
+    Serial.print('\r');
+    //Serial.print((char)inp);
+    
+    commandbuffer[commandbuffer_idx] = inp;
+    commandbuffer_idx ++;
+    commandbuffer[commandbuffer_idx] = '\0';
+
+    Serial.print(commandbuffer);
+
+    if(inp == '\n')
+    {
+      
+      String commandstr = String(commandbuffer);
+      cli_parse(commandstr);
+      commandbuffer_idx = 0;
+    }
+
+    //char buf[10];
+    //String inp = Serial.read(buf, Serial.available())
+        // Read out string from the serial monitor
+        /*String input = Serial.readStringUntil('\n');
+
+        // Echo the user input
+        Serial.print("# ");
+        Serial.println(input);
+
+        // Parse the user input into the CLI
+        cli_parse(input);*/
+    }
 
 
   // -------------------------=== FLAGS ===--------------------------

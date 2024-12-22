@@ -1,7 +1,9 @@
-#ifndef LOG_H
-#define LOG_H
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include <U8g2lib.h>
+
+extern String bootlog;
 
 void log_boot(String line);
 void printDebugLog(String line);

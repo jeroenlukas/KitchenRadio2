@@ -16,8 +16,7 @@ uint8_t u8log_buffer_boot[LOG_BOOT_WIDTH * LOG_BOOT_HEIGHT];
 uint8_t u8log_buffer_debug[LOG_DEBUG_WIDTH * LOG_DEBUG_HEIGHT];
 
 
-
-
+String bootlog;
 
 String logline;
 bool updateLog = false;
@@ -28,6 +27,8 @@ void log_boot_begin()
 {
     u8g2log_boot.begin(u8g2, LOG_BOOT_WIDTH, LOG_BOOT_HEIGHT, u8log_buffer_boot);
     u8g2log_boot.setRedrawMode(0);
+
+    bootlog = "*** Boot Log ***\n";
 }
 
 // Print a boot message. Message is also written to Serial output by default
@@ -38,6 +39,11 @@ void log_boot(String line, bool log_to_serial)
     {
         Serial.println(">> " + line);
     }
+
+    char timestamp[12];
+    itoa(millis(), timestamp, 10);
+    
+    bootlog.concat(String(timestamp) + " " + line + '\n');
 }
 
 void log_boot(String line)

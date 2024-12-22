@@ -28,6 +28,17 @@ class Information {
             int bluetoothMode;
         };
 
+        struct Lamp
+        {
+            ///int r;
+            //int g;
+            //int b;
+            float lightness;
+            float hue; 
+            float saturation;
+
+        };
+
         struct Webradio
         {
             uint8_t stationIndex;
@@ -48,6 +59,7 @@ class Information {
 
         System system;
         AudioPlayer audioPlayer;
+        Lamp lamp;
         Webradio webRadio;
         Weather weather;
 

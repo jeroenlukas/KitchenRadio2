@@ -7,6 +7,7 @@
 #include "version.h"
 #include "flags.h"
 #include "hmi/krLamp.h"
+#include "hmi/krCLI.h"
 
 // https://randomnerdtutorials.com/esp32-websocket-server-sensor/
 
@@ -110,7 +111,18 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
         deserializeJson(doc, message);
 
-        lamp_setcolor(doc["ledring"]["r"],doc["ledring"]["g"],doc["ledring"]["b"],255);
+        //lamp_setcolor(doc["ledring"]["r"],doc["ledring"]["g"],doc["ledring"]["b"],255);
+        lamp_sethue(doc["ledring"]["h"]);
+        lamp_setsaturation(doc["ledring"]["s"]);
+        lamp_setlightness(doc["ledring"]["v"]);
+      }
+      else if(message.startsWith("{\"console"))
+      {
+        DynamicJsonDocument doc(1024);
+
+        deserializeJson(doc, message);
+
+        cli_parse(doc["console"]["command"]);
       }
   }
 }
