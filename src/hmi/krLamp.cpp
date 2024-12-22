@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Ticker.h>
 #include "hmi/krLamp.h"
 #include <NeoPixelBus.h>
 #include "configuration/config.h"
@@ -8,28 +9,28 @@
 const uint16_t PixelCount = LED_RING_NUM_LEDS; // this example assumes 4 pixels, making it smaller will cause a failure
 const uint8_t PixelPin = PIN_LED_RING;  // make sure to set this to the correct pin, ignored for Esp8266
 
-#define colorSaturation 128
+//#define colorSaturation 128
 
-// three element pixels, in different order and speeds
+Ticker ticker_effect_100ms_ref;
+
 NeoPixelBus<NeoGrbFeature, NeoWs2812xMethod> strip(PixelCount, PixelPin);
-/*
-RgbColor red(colorSaturation, 0, 0);
-RgbColor green(0, colorSaturation, 0);
-RgbColor blue(0, 0, colorSaturation);
-RgbColor white(colorSaturation);
-RgbColor orange(colorSaturation, colorSaturation / 2, colorSaturation / 7);
-RgbColor black(0);
 
-HslColor hslRed(red);
-HslColor hslGreen(green);
-HslColor hslBlue(blue);
-HslColor hslWhite(white);
-HslColor hslBlack(black);
-HslColor hslOrange(orange);
-*/
 
 bool lamp_state = false;
 
+
+void ticker_effect_100ms()
+{
+    if(information.lamp.effect_type == LAMP_EFFECT_COLORFADE)
+    {
+        // Hue fade
+        if((information.lamp.hue += information.lamp.effect_speed) > 1.0)
+        {
+            information.lamp.hue = 0.0;
+        }
+        lamp_sethue(information.lamp.hue);
+    }
+}
 
 void lamp_init()
 {
@@ -37,6 +38,14 @@ void lamp_init()
     strip.Begin();
     strip.Show();
 
+    ticker_effect_100ms_ref.attach(0.1, ticker_effect_100ms);
+    
+    information.lamp.effect_type = LAMP_EFFECT_NONE; // No effect
+    information.lamp.effect_speed = 0.001;
+
+    information.lamp.hue = 0.2;
+    information.lamp.saturation = 1.0;
+    information.lamp.lightness = 0.3;
     
 }
 
@@ -54,6 +63,9 @@ void lamp_update()
         strip.SetPixelColor(i, hsl);
     }
     strip.Show();
+
+    lamp_state = (information.lamp.lightness > 0.0);
+    digitalWrite(LED_LAMP, lamp_state);
 }
 
 void lamp_toggle()
@@ -61,6 +73,7 @@ void lamp_toggle()
     if(lamp_state)
     {
         lamp_off();
+        //information.lamp.effect = LAMP_EFFECT_NONE;
     }
     else
     {
@@ -71,73 +84,35 @@ void lamp_toggle()
 
 void lamp_off()
 {
-    //lamp_setcolor(0, 0, 0, 0);    
     lamp_setlightness(0.0);    
 }
 
 // H, S values (0.0 - 1.0)
 // L should be limited to between (0.0 - 0.5)
 void lamp_sethue(float hue)
-{
-    
+{    
     information.lamp.hue = constrain(hue, 0.0, 1.0);
     lamp_update();    
 }
 
 void lamp_setsaturation(float saturation)
 {
-    
     information.lamp.saturation = constrain(saturation, 0.0, 1.0);
     lamp_update();
 }
 
 void lamp_setlightness(float lightness)
-{
-    
+{    
     information.lamp.lightness = constrain(lightness, 0.0, 0.5);
     lamp_update();
 }
 
-
-
-
-
-// DEPRECATED
-void lamp_setcolor(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness)
+void lamp_seteffecttype(uint8_t effect)
 {
-    if (brightness == 0)
-    {
-        lamp_state = false;
-    }
-    else
-    {
-        lamp_state = true;
-    } 
-    digitalWrite(LED_LAMP, lamp_state);
+    information.lamp.effect_type = effect;     
+}
 
-    double brightness_div = (double)brightness / 255.0;
-
-    r = r * brightness_div;
-    g = g * brightness_div;
-    b = b * brightness_div;
-
-    Serial.print("Brightness_div:");
-    Serial.print(brightness_div);
-    Serial.print("R:");
-    Serial.print(r);
-
-    //information.lamp.r = r;
-   /// information.lamp.g = g;
-   // information.lamp.b = b;
-   // information.lamp.brightness = brightness;
-    
-
-    RgbColor rgb(r, g, b);
-    HslColor hsl(rgb);
-
-    information.lamp.hue = hsl.H;
-    information.lamp.saturation = hsl.S;
-    information.lamp.lightness = brightness_div;
-
-    lamp_update();
+void lamp_seteffectspeed(float speed)
+{
+    information.lamp.effect_speed = speed;     
 }

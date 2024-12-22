@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <LittleFS.h>
+
 #include "hmi/krCLI.h"
 #include "configuration/config.h"
 #include "configuration/constants.h"
@@ -22,6 +24,8 @@ Command cmd_volume;
 Command cmd_lamp;
 Command cmd_bootlog;
 Command cmd_log;
+Command cmd_effect;
+Command cmd_cat;
 
 void cb_reset(cmd* c) 
 {
@@ -71,7 +75,22 @@ void cb_lamp(cmd* c)
         float l = cmd.getArgument("l").getValue().toFloat();
         lamp_setlightness(l);
     }
+    
 
+}
+
+void cb_effect(cmd* c)
+{
+    Command cmd(c);
+
+    if(cmd.getArgument("t").isSet())
+    {
+        lamp_seteffecttype(cmd.getArgument("t").getValue().toInt());
+    }
+    if(cmd.getArgument("s").isSet())
+    {
+        lamp_seteffectspeed(cmd.getArgument("s").getValue().toFloat());
+    }
 }
 
 void cb_bootlog(cmd* c)
@@ -90,6 +109,32 @@ void cb_help(cmd* c)
 {
     Serial.println("--- Commands ---");
     Serial.println(kr_cli.toString());
+}
+
+void cb_cat(cmd* c)
+{
+    Command cmd(c);
+    String filename = cmd.getArgument(0).getValue();
+    File file_cat = LittleFS.open(filename, "r");
+
+    if(!file_cat)
+    {
+        Serial.print("Error: could not open file " + filename);
+        return;
+    }
+
+    String file_content;
+    Serial.println("\n--- " + filename + " ---\n");
+
+    while(file_cat.available())
+    {
+        String data = file_cat.readString();
+        //file_content += data;
+        Serial.print(data);
+    }
+    Serial.print("\n--- end ---\n");
+
+    file_cat.close();
 }
 
 void cb_error(cmd_error* e) {
@@ -132,12 +177,22 @@ void cli_init(void)
     cmd_lamp = kr_cli.addCmd("lamp", cb_lamp);
     cmd_lamp.addArgument("h/ue", "0.0");
     cmd_lamp.addArgument("s/aturation", "0.0");
-    cmd_lamp.addArgument("l/lightness", "0.0");
+    cmd_lamp.addArgument("l/ightness", "0.0");    
     cmd_lamp.setDescription("- Set the lamp hue (0.0 - 1.0), saturation (0.0 - 1.0) and/or lightness (0.0 - 0.5)");
+
+    // > effect
+    cmd_effect = kr_cli.addCmd("effect", cb_effect);
+    cmd_effect.addArgument("t/ype", "0");
+    cmd_effect.addArgument("s/peed", "0");
+    cmd_effect.setDescription("- Set lamp effect and parameters");
     
     // > log
     cmd_log = kr_cli.addSingleArgCmd("log", cb_log);
     cmd_log.setDescription("- Print a debug message");
+
+    // > cat
+    cmd_cat = kr_cli.addSingleArgumentCommand("cat", cb_cat);
+    cmd_cat.setDescription("- Print contents of a file. Example: cat /settings/stations.json");
 
 
 

@@ -36,7 +36,8 @@ class Information {
             float lightness;
             float hue; 
             float saturation;
-
+            uint8_t effect_type;
+            float effect_speed;
         };
 
         struct Webradio
