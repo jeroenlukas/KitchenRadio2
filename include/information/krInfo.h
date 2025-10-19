@@ -33,6 +33,7 @@ class Information {
             ///int r;
             //int g;
             //int b;
+            bool state;
             float lightness;
             float hue; 
             float saturation;
@@ -54,6 +55,8 @@ class Information {
             String stateLong;
             float temperature;
             double windSpeedKmh;
+            int windSpeedBft;
+            int stateCode;
         };
         
 

@@ -9,6 +9,9 @@
 const uint16_t PixelCount = LED_RING_NUM_LEDS; // this example assumes 4 pixels, making it smaller will cause a failure
 const uint8_t PixelPin = PIN_LED_RING;  // make sure to set this to the correct pin, ignored for Esp8266
 
+String mitem_lamp_state_desc[2] = {"off", "on"};
+String mitem_lamp_effecttype_desc[2] = {"off", "color fade"};
+
 //#define colorSaturation 128
 
 Ticker ticker_effect_100ms_ref;
@@ -74,11 +77,13 @@ void lamp_toggle()
     {
         lamp_off();
         //information.lamp.effect = LAMP_EFFECT_NONE;
+        information.lamp.state = false;
     }
     else
     {
         lamp_setlightness(0.5);
         lamp_update();
+        information.lamp.state = true;
     }
 }
 
@@ -114,5 +119,6 @@ void lamp_seteffecttype(uint8_t effect)
 
 void lamp_seteffectspeed(float speed)
 {
-    information.lamp.effect_speed = speed;     
+
+    information.lamp.effect_speed = constrain(speed, 0.000001, 0.5);     
 }

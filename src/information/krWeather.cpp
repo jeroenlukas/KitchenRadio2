@@ -35,6 +35,8 @@ bool weather_retrieve()
         information.weather.stateShort = weather_type;
         information.weather.temperature = doc["main"]["temp"];        
         information.weather.windSpeedKmh = (double)(doc["wind"]["speed"]) * 3.6;
+        information.weather.stateCode = (int)doc["weather"]["id"];
+        //information.weather.windSpeedBft = doc["main"]
         
         ret = true;
     }

@@ -232,7 +232,7 @@ void loop()
 
 
 // TODO change to flag
-  if((millis() - prev_millis > 1000) || (flags.main.updateLog))
+  if((millis() - prev_millis > 500) || (flags.main.updateLog && (menu == MENU_HOME)))
   {
     prev_millis = millis();
     
@@ -241,78 +241,141 @@ void loop()
     // This draws the main screen. Only screen related stuff should be done here.
     do {
 
-      // Weather
-      u8g2.setFont(FONT_S);
-      u8g2.drawStr(3, 6, (information.weather.stateShort).c_str());
-      u8g2.drawStr(3, 14, ("Temp: " + String(information.weather.temperature) + "\xb0" + "C").c_str());
-      u8g2.drawStr(3, 22, ("Wind: " + String(information.weather.windSpeedKmh) + " kmh").c_str());
-      u8g2.drawStr(3, 30, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
-      u8g2.drawStr(3, 38, ("Buf: " + String(circBuffer.available()) + " B").c_str());
-
-      // Clock
-      u8g2.setFont(FONT_CLOCK);
-      u8g2.setCursor(POSX_CLOCK, POSY_CLOCK);
-      u8g2.print(u8x8_u8toa(information.hour, 2)); 
-      u8g2.drawStr(POSX_CLOCK + 30, POSY_CLOCK - 2, ":");
-      u8g2.setCursor(POSX_CLOCK + 39, POSY_CLOCK);
-      u8g2.print(u8x8_u8toa(information.minute, 2));
-      
-      // Date
-      u8g2.setFont(FONT_S);
-      u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (information.dateMid).c_str());
-
-      // Misc
-      u8g2.setFont(FONT_S);
-      u8g2.drawStr(POSX_CLOCK + 30, 60, ("LDR: " + String(information.system.ldr) + "%").c_str());
-
-      u8g2.drawLine(0, 44, 256, 44);
-
-      // Sound mode / Station 
-      
-      switch(audioplayer_soundMode)
+      switch(menu)
       {
-        case SOUNDMODE_OFF:
-        
-          u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-          u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "(Off)");
-          break;
-        case SOUNDMODE_WEBRADIO:
-          u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_radio_width, xbm_radio_height, xbm_radio_bits);
-          u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-          u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, (String(information.webRadio.stationIndex + 1) + "/" + String(information.webRadio.stationCount) + " " + (information.webRadio.stationName)).c_str());
-          break;
-        case SOUNDMODE_BLUETOOTH:
-          u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_bluetooth_width, xbm_bluetooth_height, xbm_bluetooth_bits);
-
-          u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-          u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "Bluetooth");
-          u8g2.setFont(u8g2_font_open_iconic_all_2x_t);
-          switch(information.audioPlayer.bluetoothMode)
+        case MENU_HOME:
+          // Weather
+          if(settings["homedisplay"] == "debug")
           {
-            case KCX_OFF:
-              //u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "Off");
-              u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 285);
+            u8g2.setFont(FONT_S);
+            u8g2.drawStr(3, 6, (information.weather.stateShort).c_str());
+            u8g2.drawStr(3, 14, ("Temp: " + String(information.weather.temperature) + "\xb0" + "C").c_str());
+            u8g2.drawStr(3, 22, ("Wind: " + String(information.weather.windSpeedKmh) + " kmh").c_str());
+            u8g2.drawStr(3, 30, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
+            u8g2.drawStr(3, 38, ("Buf: " + String(circBuffer.available()) + " B").c_str());
+          }
+          else if(settings["homedisplay"] == "normal")
+          {
+            u8g2.setFont(u8g2_font_open_iconic_weather_4x_t);
+            int weatherglyph = 0;
+            // https://openweathermap.org/weather-conditions
+            if(information.weather.stateCode <= 232) weatherglyph = 64+3; // thunderstorm
+            if(information.weather.stateCode <= 321) weatherglyph = 64+3; // drizzle
+            if(information.weather.stateCode <= 531) weatherglyph = 64+3; // raim
+            if(information.weather.stateCode <= 622) weatherglyph = 64+3; // snow
+            if(information.weather.stateCode <= 781) weatherglyph = 64+4; // atmosphere
+            if(information.weather.stateCode <= 800) weatherglyph = 64+5; // clear
+            if(information.weather.stateCode <= 804) weatherglyph = 64+0; // clouds
+            u8g2.drawGlyph(5, 35, weatherglyph);
+            u8g2.setFont(FONT_M);
+            u8g2.drawStr(42, 10,(String(information.weather.temperature,1) + " C").c_str());
+            u8g2.drawStr(42, 20,(String(information.weather.windSpeedKmh,0) + " kmh").c_str());
+            u8g2.drawStr(42, 30,(String(information.weather.stateShort)).c_str());
+            u8g2.setFont(FONT_S);
+            u8g2.drawStr(POSX_CLOCK + 30, 60, ("B: " + String(circBuffer.available()) + " B").c_str());
+          }
+             
+          
+
+          // Clock
+          u8g2.setFont(FONT_CLOCK);
+          u8g2.setCursor(POSX_CLOCK, POSY_CLOCK);
+          u8g2.print(u8x8_u8toa(information.hour, 2)); 
+          u8g2.drawStr(POSX_CLOCK + 30, POSY_CLOCK - 2, ":");
+          u8g2.setCursor(POSX_CLOCK + 39, POSY_CLOCK);
+          u8g2.print(u8x8_u8toa(information.minute, 2));
+          
+          // Date
+          u8g2.setFont(FONT_S);
+          u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (information.dateMid).c_str());
+
+          // Misc
+          u8g2.setFont(FONT_S);
+          //u8g2.drawStr(POSX_CLOCK + 30, 60, ("LDR: " + String(information.system.ldr) + "%").c_str());
+
+          u8g2.drawLine(0, 44, 256, 44);
+
+          // Sound mode / Station 
+          
+          switch(audioplayer_soundMode)
+          {
+            case SOUNDMODE_OFF:
+            
+              u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "(Off)");
               break;
-            case KCX_NOTCONNECTED:
-              u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 285);
+            case SOUNDMODE_WEBRADIO:
+              u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_radio_width, xbm_radio_height, xbm_radio_bits);
+              u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, (String(information.webRadio.stationIndex + 1) + "/" + String(information.webRadio.stationCount) + " " + (information.webRadio.stationName)).c_str());
               break;
-            case KCX_PAUSED:
-              u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 210);
+            case SOUNDMODE_BLUETOOTH:
+              u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_bluetooth_width, xbm_bluetooth_height, xbm_bluetooth_bits);
+
+              u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "Bluetooth");
+              u8g2.setFont(u8g2_font_open_iconic_all_2x_t);
+              switch(information.audioPlayer.bluetoothMode)
+              {
+                case KCX_OFF:
+                  //u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "Off");
+                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 285);
+                  break;
+                case KCX_NOTCONNECTED:
+                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 285);
+                  break;
+                case KCX_PAUSED:
+                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 210);
+                  break;
+                case KCX_PLAYING:
+                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 211);
+                  break;
+                case KCX_UNKNOWN:            
+                  u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(?)");
+                  break;
+              }
               break;
-            case KCX_PLAYING:
-              u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 211);
+          }
+
+          // Log window
+          log_debug_draw();
+          
+          break; // END MENU_HOME
+
+        case MENU_LAMP:
+          u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+          u8g2.drawStr(10, 10, "Lamp");
+          u8g2.setFont(FONT_S);
+          u8g2.drawStr(2, 62, "Back                 up                  down");
+
+          
+          switch(menuitem)
+          {
+            case MITEM_LAMP_STATE:
+              u8g2.drawStr(10, 30, "State:");
+              u8g2.drawStr(80, 30, mitem_lamp_state_desc[information.lamp.state].c_str());
               break;
-            case KCX_UNKNOWN:            
-              u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(?)");
+            case MITEM_LAMP_HUE:
+              u8g2.drawStr(10, 30, "Hue:");
+              u8g2.drawStr(80, 30, String(information.lamp.hue).c_str());
+              break;
+            case MITEM_LAMP_EFFECTTYPE:
+              u8g2.drawStr(10, 30, "Effect type:");
+              //u8g2.drawStr(80, 30, String(information.lamp.effect_type).c_str());
+              u8g2.drawStr(80, 30, mitem_lamp_effecttype_desc[information.lamp.effect_type].c_str());
+              break;
+            case MITEM_LAMP_EFFECTSPEED:
+              u8g2.drawStr(10, 30, "Effect speed:");
+              u8g2.drawStr(80, 30, String((int)(information.lamp.effect_speed*1000)).c_str());
               break;
           }
           break;
+
+          
+
       }
 
-      // Log window
-      log_debug_draw();
-
-
+      
 
     } while ( u8g2.nextPage() );
 
@@ -435,22 +498,50 @@ void loop()
   {
       flags.frontPanel.buttonOffPressed = false;
 
-
-      audioplayer_set_soundmode(SOUNDMODE_OFF);
+      switch(menu)
+      {
+        case MENU_HOME:
+          audioplayer_set_soundmode(SOUNDMODE_OFF);
+          break;
+        case MENU_LAMP:
+          menu = MENU_HOME;
+          break;
+      }
+      
  
   }
   if(flags.frontPanel.buttonRadioPressed)
   {
       flags.frontPanel.buttonRadioPressed = false; 
 
-      audioplayer_set_soundmode(SOUNDMODE_WEBRADIO);
+      switch(menu)
+      {
+        case MENU_HOME:
+          audioplayer_set_soundmode(SOUNDMODE_WEBRADIO);
+          break;
+        case MENU_LAMP:
+          // up
+          if(menuitem > MITEM_LAMP_STATE) menuitem--;
+          break;
+      }
+      
   }
 
   if(flags.frontPanel.buttonBluetoothPressed)
   {
     flags.frontPanel.buttonBluetoothPressed = false;
 
-    audioplayer_set_soundmode(SOUNDMODE_BLUETOOTH);
+    switch(menu)
+    {
+      case MENU_HOME:
+        audioplayer_set_soundmode(SOUNDMODE_BLUETOOTH);
+        break;
+      case MENU_LAMP:
+        // down
+        if(menuitem < MITEM_LAMP_EFFECTSPEED) menuitem++;
+        break;
+    }
+    
   }
 
   if(flags.frontPanel.buttonSystemPressed)
@@ -470,6 +561,8 @@ void loop()
   if(flags.frontPanel.buttonLampPressed)
   {
     flags.frontPanel.buttonLampPressed = false;
+    menu = MENU_LAMP;
+    menuitem = MITEM_LAMP_STATE;
     lamp_toggle();
 
   }
@@ -490,13 +583,39 @@ void loop()
   {
     flags.frontPanel.encoderTurnLeft = false;
 
-    if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+    switch(menu)
     {
-      if(webradio_stationIndex > 0)
-      {
-        webradio_stationIndex--;
-        webradio_open_station(webradio_stationIndex);
-      }      
+      case MENU_HOME:
+        if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+        {
+          if(webradio_stationIndex > 0)
+          {
+            webradio_stationIndex--;
+            webradio_open_station(webradio_stationIndex);
+          }      
+        }
+        break;
+      case MENU_LAMP:
+        switch(menuitem)
+        {
+          case MITEM_LAMP_STATE:
+            if(information.lamp.state)
+              lamp_toggle();
+            break;
+          case MITEM_LAMP_HUE:
+            lamp_sethue(information.lamp.hue - 0.05);
+            break;
+          case MITEM_LAMP_EFFECTTYPE:
+            if(information.lamp.effect_type > 0)
+            {
+              lamp_seteffecttype(information.lamp.effect_type - 1); 
+            }
+            break;
+          case MITEM_LAMP_EFFECTSPEED:
+            lamp_seteffectspeed(information.lamp.effect_speed - 0.001);
+            break;
+        }
+        break;
     }
   }
 
@@ -504,14 +623,41 @@ void loop()
   {
     flags.frontPanel.encoderTurnRight = false;
 
-    if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+    switch(menu)
     {
-      if(webradio_stationIndex < information.webRadio.stationCount - 1)
-      {
-        webradio_stationIndex++;      
-        webradio_open_station(webradio_stationIndex);
-      }
+      case MENU_HOME:
+        if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+        {
+          if(webradio_stationIndex < information.webRadio.stationCount - 1)
+          {
+            webradio_stationIndex++;      
+            webradio_open_station(webradio_stationIndex);
+          }
+        }
+        break;
+      case MENU_LAMP:
+        switch(menuitem)
+        {
+          case MITEM_LAMP_STATE:
+            if(!information.lamp.state)
+              lamp_toggle();
+            break;
+          case MITEM_LAMP_HUE:
+            lamp_sethue(information.lamp.hue + 0.05);
+            break;
+          case MITEM_LAMP_EFFECTTYPE:
+            if(information.lamp.effect_type < LAMP_EFFECT_MAX)
+            {
+              lamp_seteffecttype(information.lamp.effect_type + 1);
+            }   
+            break;
+          case MITEM_LAMP_EFFECTSPEED:
+            lamp_seteffectspeed(information.lamp.effect_speed + 0.001);
+            break;
+        }
+        break;
     }
+    
   }
 }
 

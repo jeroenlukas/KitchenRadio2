@@ -12,7 +12,8 @@
             "trebleGain": -5, 
             "trebleFreq": 5, 
             "bassGain": 10,
-            "bassFreq": 14 
+            "bassFreq": 100 
         }
-    }
+    },
+    "homedisplay": "normal"
 }

@@ -24,4 +24,7 @@ class Flags
 
 extern Flags flags;
 
+extern int menu;
+extern int menuitem;
+
 #endif

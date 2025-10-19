@@ -45,6 +45,7 @@
 #define FONT_BOOTLOG            u8g2_font_4x6_tf
 #define FONT_DEBUGLOG           u8g2_font_4x6_tf
 #define FONT_S                  u8g2_font_smallsimple_tr //u8g2_font_simple1_tf=h13w9
+#define FONT_M                  u8g2_font_minicute_tr
 
 // Widget positions
 #define POSX_CLOCK              186
@@ -57,5 +58,15 @@
 
 // LED ring
 #define LED_RING_NUM_LEDS       24
+
+// Menu
+#define MENU_HOME               1
+#define MENU_LAMP               2
+#define MITEM_LAMP_STATE        201
+#define MITEM_LAMP_HUE          202
+#define MITEM_LAMP_EFFECTTYPE   203
+#define MITEM_LAMP_EFFECTSPEED  204
+
+
 
 #endif

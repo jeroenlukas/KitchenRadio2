@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "configuration/config.h"
 #include "information/krInfo.h"
+#include "settings/krSettings.h"
 #include "main.h"
 #include "flags.h"
 //#include "configMisc.h"
@@ -76,15 +77,18 @@ void log_debug_draw()
 {
     u8g2.setFont(FONT_DEBUGLOG);    
 
-      // Add a log line if needed      
-      if(flags.main.updateLog)
-      {
-        flags.main.updateLog = false;
-        log_debug_print();
-      }
+    // Add a log line if needed      
+    if(flags.main.updateLog)
+    {
+    flags.main.updateLog = false;
+    log_debug_print();
+    }
 
-    u8g2.drawLog(LOG_DEBUG_POSX + 3, LOG_DEBUG_POSY + 1, u8g2log_debug);
+    if(settings["homedisplay"] == "debug")
+    {
+        u8g2.drawLog(LOG_DEBUG_POSX + 3, LOG_DEBUG_POSY + 1, u8g2log_debug);
 
-    // Draw a frame around the log window
-    u8g2.drawFrame(LOG_DEBUG_POSX, LOG_DEBUG_POSY, LOG_DEBUG_WIDTH * u8g2.getMaxCharWidth(), (LOG_DEBUG_HEIGHT - 1) * u8g2.getMaxCharHeight()) ;
+        // Draw a frame around the log window
+        u8g2.drawFrame(LOG_DEBUG_POSX, LOG_DEBUG_POSY, LOG_DEBUG_WIDTH * u8g2.getMaxCharWidth(), (LOG_DEBUG_HEIGHT - 1) * u8g2.getMaxCharHeight()) ;
+    }
 }

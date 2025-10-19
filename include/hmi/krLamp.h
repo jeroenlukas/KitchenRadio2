@@ -5,6 +5,7 @@
 
 #define LAMP_EFFECT_NONE        0   // No effect
 #define LAMP_EFFECT_COLORFADE   1   // Fade through the complete color range
+#define LAMP_EFFECT_MAX         1
 
 void lamp_init();
 
@@ -16,5 +17,8 @@ void lamp_setsaturation(float saturation);
 void lamp_setlightness(float lightness);
 void lamp_seteffecttype(uint8_t effect);
 void lamp_seteffectspeed(float speed);
+
+extern String mitem_lamp_state_desc[];// = {"on", "off"};
+extern String mitem_lamp_effecttype_desc[];
 
 #endif
