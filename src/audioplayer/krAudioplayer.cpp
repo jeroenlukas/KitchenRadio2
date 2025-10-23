@@ -5,7 +5,9 @@
 #include "audioplayer/krAudioplayer.h"
 #include "webradio/krWebradio.h"
 #include "hmi/krFrontpanel.h"
+#include "information/krInfo.h"
 #include "configuration/constants.h"
+#include "settings/krSettings.h"
 #include "audioplayer/kcx.h"
 #include "logger.h"
 #include "flags.h"
@@ -135,9 +137,44 @@ void IRAM_ATTR audioplayer_feedbuffer()
 
 void audioplayer_settone(int8_t bass_freq, int8_t bass_gain, int8_t treble_freq, int8_t treble_gain)
 {
+    /*
+    ST_AMPLITUDE 15:12  Treble Control in 1.5 dB steps (-8..7, 0 = off)
+    ST_FREQLIMIT 11:8   Lower limit frequency in 1000 Hz steps (1..15)
+    SB_AMPLITUDE 7:4    Bass Enhancement in 1 dB steps (0..15, 0 = off)
+    SB_FREQLIMIT 3:0    Lower limit frequency in 10 Hz steps (2..15
+    */
     uint16_t toneconfig = ((treble_gain << 12) + (treble_freq << 8) + (bass_gain << 4) + bass_freq);
         
     player.writeRegister(0x2, toneconfig);
+}
+
+void audioplayer_setbass(int8_t bass_gain)
+{
+    int gain = constrain(bass_gain, 0, +15);
+    information.audioPlayer.bass = gain;
+    
+    // Change the tonecontrol
+    audioplayer_settone(
+        int(settings["audio"]["toneControl"]["bassFreq"]),
+        information.audioPlayer.bass,
+        int(settings["audio"]["toneControl"]["trebleFreq"]),
+        information.audioPlayer.treble
+        );
+    
+
+}
+
+void audioplayer_settreble(int8_t treble_gain)
+{
+    int gain = constrain(treble_gain, -8, +7);
+    information.audioPlayer.treble = gain;
+    // Change the tonecontrol
+    audioplayer_settone(
+        int(settings["audio"]["toneControl"]["bassFreq"]),
+        information.audioPlayer.bass,
+        int(settings["audio"]["toneControl"]["trebleFreq"]),
+        information.audioPlayer.treble
+        );
 }
 
 // Flush the buffer, to avoid audio continuing to play once the stream is closed

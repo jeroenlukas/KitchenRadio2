@@ -62,10 +62,21 @@
 // Menu
 #define MENU_HOME               1
 #define MENU_LAMP               2
+#define MENU_SYSTEM             3
+#define MENU_ALARM              4
+
+#define MITEM_LAMP_MIN          201
 #define MITEM_LAMP_STATE        201
 #define MITEM_LAMP_HUE          202
 #define MITEM_LAMP_EFFECTTYPE   203
 #define MITEM_LAMP_EFFECTSPEED  204
+#define MITEM_LAMP_MAX          204
+
+#define MITEM_SYSTEM_MIN        301
+#define MITEM_SYSTEM_INFO       301
+#define MITEM_SYSTEM_BASS       302
+#define MITEM_SYSTEM_TREBLE     303
+#define MITEM_SYSTEM_MAX        303
 
 
 

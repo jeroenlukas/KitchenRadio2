@@ -18,6 +18,9 @@ void audioplayer_init();
 void audioplayer_set_soundmode(uint8_t soundMode);
 void audioplayer_feedbuffer();
 void audioplayer_flushbuffer();
-void audioplayer_settone(int8_t bass_freq, int8_t bass_gain, int8_t treble_freq, int8_t treble_gain);
+//void audioplayer_settone(int8_t bass_freq, int8_t bass_gain, int8_t treble_freq, int8_t treble_gain);
+
+void audioplayer_setbass(int8_t bass_gain);
+void audioplayer_settreble(int8_t treble_gain);
 
 #endif

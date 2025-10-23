@@ -9,10 +9,10 @@
     {
         "toneControl":
         {
-            "trebleGain": -5, 
+            "trebleGain": 0, 
             "trebleFreq": 5, 
-            "bassGain": 10,
-            "bassFreq": 100 
+            "bassGain": 0,
+            "bassFreq": 12 
         }
     },
     "homedisplay": "normal"

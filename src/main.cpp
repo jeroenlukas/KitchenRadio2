@@ -2,7 +2,7 @@
 
 #include <Ticker.h>
 
-#include <U8g2lib.h>
+
 
 #include <WiFi.h>
 
@@ -34,6 +34,7 @@
 #include "hmi/xbmIcons.h"
 #include "hmi/krLamp.h"
 #include "hmi/krCLI.h"
+#include "hmi/krDisplay.h"
 
 #include "esp_system.h"
 #include "esp_himem.h"
@@ -48,7 +49,7 @@ Ticker ticker_1000ms_ref;
 Ticker ticker_1min_ref;
 Ticker ticker_30min_ref;
 
-U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
+
 
 void ticker_10ms()
 {
@@ -197,11 +198,12 @@ void setup()
   }
 
   // Set tone control
-  audioplayer_settone(int(settings["audio"]["toneControl"]["bassFreq"]), 
+  /*audioplayer_settone(int(settings["audio"]["toneControl"]["bassFreq"]), 
                       int(settings["audio"]["toneControl"]["bassGain"]), 
                       int(settings["audio"]["toneControl"]["trebleFreq"]), 
-                      int(settings["audio"]["toneControl"]["trebleGain"]));
-
+                      int(settings["audio"]["toneControl"]["trebleGain"]));*/
+  audioplayer_setbass(0);
+  audioplayer_settreble(0);
 
   // Get weather
   weather_retrieve();
@@ -209,7 +211,7 @@ void setup()
   log_boot("Starting webserver");
   webserver_init();
 
-  delay(1000);
+  delay(100);
 
 
   // Tickers
@@ -236,154 +238,8 @@ void loop()
   {
     prev_millis = millis();
     
-    u8g2.firstPage();
-
-    // This draws the main screen. Only screen related stuff should be done here.
-    do {
-
-      switch(menu)
-      {
-        case MENU_HOME:
-          // Weather
-          if(settings["homedisplay"] == "debug")
-          {
-            u8g2.setFont(FONT_S);
-            u8g2.drawStr(3, 6, (information.weather.stateShort).c_str());
-            u8g2.drawStr(3, 14, ("Temp: " + String(information.weather.temperature) + "\xb0" + "C").c_str());
-            u8g2.drawStr(3, 22, ("Wind: " + String(information.weather.windSpeedKmh) + " kmh").c_str());
-            u8g2.drawStr(3, 30, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
-            u8g2.drawStr(3, 38, ("Buf: " + String(circBuffer.available()) + " B").c_str());
-          }
-          else if(settings["homedisplay"] == "normal")
-          {
-            u8g2.setFont(u8g2_font_open_iconic_weather_4x_t);
-            int weatherglyph = 0;
-            // https://openweathermap.org/weather-conditions
-            if(information.weather.stateCode <= 232) weatherglyph = 64+3; // thunderstorm
-            if(information.weather.stateCode <= 321) weatherglyph = 64+3; // drizzle
-            if(information.weather.stateCode <= 531) weatherglyph = 64+3; // raim
-            if(information.weather.stateCode <= 622) weatherglyph = 64+3; // snow
-            if(information.weather.stateCode <= 781) weatherglyph = 64+4; // atmosphere
-            if(information.weather.stateCode <= 800) weatherglyph = 64+5; // clear
-            if(information.weather.stateCode <= 804) weatherglyph = 64+0; // clouds
-            u8g2.drawGlyph(5, 35, weatherglyph);
-            u8g2.setFont(FONT_M);
-            u8g2.drawStr(42, 10,(String(information.weather.temperature,1) + " C").c_str());
-            u8g2.drawStr(42, 20,(String(information.weather.windSpeedKmh,0) + " kmh").c_str());
-            u8g2.drawStr(42, 30,(String(information.weather.stateShort)).c_str());
-            u8g2.setFont(FONT_S);
-            u8g2.drawStr(POSX_CLOCK + 30, 60, ("B: " + String(circBuffer.available()) + " B").c_str());
-          }
-             
-          
-
-          // Clock
-          u8g2.setFont(FONT_CLOCK);
-          u8g2.setCursor(POSX_CLOCK, POSY_CLOCK);
-          u8g2.print(u8x8_u8toa(information.hour, 2)); 
-          u8g2.drawStr(POSX_CLOCK + 30, POSY_CLOCK - 2, ":");
-          u8g2.setCursor(POSX_CLOCK + 39, POSY_CLOCK);
-          u8g2.print(u8x8_u8toa(information.minute, 2));
-          
-          // Date
-          u8g2.setFont(FONT_S);
-          u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (information.dateMid).c_str());
-
-          // Misc
-          u8g2.setFont(FONT_S);
-          //u8g2.drawStr(POSX_CLOCK + 30, 60, ("LDR: " + String(information.system.ldr) + "%").c_str());
-
-          u8g2.drawLine(0, 44, 256, 44);
-
-          // Sound mode / Station 
-          
-          switch(audioplayer_soundMode)
-          {
-            case SOUNDMODE_OFF:
-            
-              u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "(Off)");
-              break;
-            case SOUNDMODE_WEBRADIO:
-              u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_radio_width, xbm_radio_height, xbm_radio_bits);
-              u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, (String(information.webRadio.stationIndex + 1) + "/" + String(information.webRadio.stationCount) + " " + (information.webRadio.stationName)).c_str());
-              break;
-            case SOUNDMODE_BLUETOOTH:
-              u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_bluetooth_width, xbm_bluetooth_height, xbm_bluetooth_bits);
-
-              u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "Bluetooth");
-              u8g2.setFont(u8g2_font_open_iconic_all_2x_t);
-              switch(information.audioPlayer.bluetoothMode)
-              {
-                case KCX_OFF:
-                  //u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "Off");
-                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 285);
-                  break;
-                case KCX_NOTCONNECTED:
-                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 285);
-                  break;
-                case KCX_PAUSED:
-                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 210);
-                  break;
-                case KCX_PLAYING:
-                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 211);
-                  break;
-                case KCX_UNKNOWN:            
-                  u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(?)");
-                  break;
-              }
-              break;
-          }
-
-          // Log window
-          log_debug_draw();
-          
-          break; // END MENU_HOME
-
-        case MENU_LAMP:
-          u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-          u8g2.drawStr(10, 10, "Lamp");
-          u8g2.setFont(FONT_S);
-          u8g2.drawStr(2, 62, "Back                 up                  down");
-
-          
-          switch(menuitem)
-          {
-            case MITEM_LAMP_STATE:
-              u8g2.drawStr(10, 30, "State:");
-              u8g2.drawStr(80, 30, mitem_lamp_state_desc[information.lamp.state].c_str());
-              break;
-            case MITEM_LAMP_HUE:
-              u8g2.drawStr(10, 30, "Hue:");
-              u8g2.drawStr(80, 30, String(information.lamp.hue).c_str());
-              break;
-            case MITEM_LAMP_EFFECTTYPE:
-              u8g2.drawStr(10, 30, "Effect type:");
-              //u8g2.drawStr(80, 30, String(information.lamp.effect_type).c_str());
-              u8g2.drawStr(80, 30, mitem_lamp_effecttype_desc[information.lamp.effect_type].c_str());
-              break;
-            case MITEM_LAMP_EFFECTSPEED:
-              u8g2.drawStr(10, 30, "Effect speed:");
-              u8g2.drawStr(80, 30, String((int)(information.lamp.effect_speed*1000)).c_str());
-              break;
-          }
-          break;
-
-          
-
-      }
-
-      
-
-    } while ( u8g2.nextPage() );
-
-
+    draw_menu();
   }
-
-
-  
  
   kcx_read();
 
@@ -421,18 +277,7 @@ void loop()
       commandbuffer_idx = 0;
     }
 
-    //char buf[10];
-    //String inp = Serial.read(buf, Serial.available())
-        // Read out string from the serial monitor
-        /*String input = Serial.readStringUntil('\n');
-
-        // Echo the user input
-        Serial.print("# ");
-        Serial.println(input);
-
-        // Parse the user input into the CLI
-        cli_parse(input);*/
-    }
+  }
 
 
   // -------------------------=== FLAGS ===--------------------------
@@ -504,6 +349,8 @@ void loop()
           audioplayer_set_soundmode(SOUNDMODE_OFF);
           break;
         case MENU_LAMP:
+        case MENU_SYSTEM:
+        case MENU_ALARM:
           menu = MENU_HOME;
           break;
       }
@@ -521,12 +368,16 @@ void loop()
           break;
         case MENU_LAMP:
           // up
-          if(menuitem > MITEM_LAMP_STATE) menuitem--;
+          if(menuitem > MITEM_LAMP_MIN) menuitem--;
+          break;
+        case MENU_SYSTEM:
+          if(menuitem > MITEM_SYSTEM_MIN) menuitem--;
           break;
       }
       
   }
 
+  // Doubles as DOWN
   if(flags.frontPanel.buttonBluetoothPressed)
   {
     flags.frontPanel.buttonBluetoothPressed = false;
@@ -538,7 +389,10 @@ void loop()
         break;
       case MENU_LAMP:
         // down
-        if(menuitem < MITEM_LAMP_EFFECTSPEED) menuitem++;
+        if(menuitem < MITEM_LAMP_MAX) menuitem++;
+        break;
+      case MENU_SYSTEM:
+        if(menuitem < MITEM_SYSTEM_MAX) menuitem++;
         break;
     }
     
@@ -548,14 +402,16 @@ void loop()
   {
     flags.frontPanel.buttonSystemPressed = false;
     log_debug("System");
-    audioplayer_settone(2,0,15,0); // flat
+    //audioplayer_settone(2,0,15,0); // flat
+    menu = MENU_SYSTEM;
+    menuitem = MITEM_SYSTEM_INFO;
   }
   
   if(flags.frontPanel.buttonAlarmPressed)
   {
     flags.frontPanel.buttonAlarmPressed = false;
     log_debug("Alarm");
-    audioplayer_settone(15,15,3,-6); // bass boost treble cut
+    //audioplayer_settone(15,15,3,-6); // bass boost treble cut
   }
   
   if(flags.frontPanel.buttonLampPressed)
@@ -603,7 +459,7 @@ void loop()
               lamp_toggle();
             break;
           case MITEM_LAMP_HUE:
-            lamp_sethue(information.lamp.hue - 0.05);
+            lamp_sethue(information.lamp.hue - 0.01);
             break;
           case MITEM_LAMP_EFFECTTYPE:
             if(information.lamp.effect_type > 0)
@@ -612,10 +468,22 @@ void loop()
             }
             break;
           case MITEM_LAMP_EFFECTSPEED:
-            lamp_seteffectspeed(information.lamp.effect_speed - 0.001);
+            lamp_seteffectspeed(information.lamp.effect_speed - 0.0002);
             break;
         }
         break;
+      case MENU_SYSTEM:
+        switch(menuitem)
+        {
+          case MITEM_SYSTEM_BASS:
+            audioplayer_setbass(information.audioPlayer.bass - 1);
+            break;
+          case MITEM_SYSTEM_TREBLE:
+            audioplayer_settreble(information.audioPlayer.treble - 1);
+            break;
+          default:
+            break;
+        }
     }
   }
 
@@ -652,10 +520,22 @@ void loop()
             }   
             break;
           case MITEM_LAMP_EFFECTSPEED:
-            lamp_seteffectspeed(information.lamp.effect_speed + 0.001);
+            lamp_seteffectspeed(information.lamp.effect_speed + 0.0001);
             break;
         }
         break;
+      case MENU_SYSTEM:
+        switch(menuitem)
+        {
+          case MITEM_SYSTEM_BASS:
+            audioplayer_setbass(information.audioPlayer.bass + 1);
+            break;
+          case MITEM_SYSTEM_TREBLE:
+            audioplayer_settreble(information.audioPlayer.treble + 1);
+            break;
+          default:
+            break;
+        }
     }
     
   }

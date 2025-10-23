@@ -25,6 +25,9 @@ class Information {
 
             int volume;
 
+            int bass;
+            int treble;
+
             int bluetoothMode;
         };
 
