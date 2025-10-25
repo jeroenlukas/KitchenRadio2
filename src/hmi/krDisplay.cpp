@@ -4,11 +4,14 @@
 #include "configuration/config.h"
 #include "configuration/constants.h"
 #include "information/krInfo.h"
+#include "information/krWeather.h"
 #include "settings/krSettings.h"
 #include "audioplayer/krAudioplayer.h"
 #include "logger.h"
 
 #include "hmi/xbmIcons.h"
+
+#include "hmi/u8g2_font_climacons_40.h"
 
 int menu = MENU_HOME;
 int menuitem = 0;
@@ -61,23 +64,18 @@ void draw_menu_home()
           }
           else if(settings["homedisplay"] == "normal")
           {
-            u8g2.setFont(u8g2_font_open_iconic_weather_4x_t);
+            u8g2.setFont(u8g2_font_climacons_40);
             int weatherglyph = 0;
             // https://openweathermap.org/weather-conditions
-            if(information.weather.stateCode <= 232) weatherglyph = 64+3; // thunderstorm
-            if(information.weather.stateCode <= 321) weatherglyph = 64+3; // drizzle
-            if(information.weather.stateCode <= 531) weatherglyph = 64+3; // raim
-            if(information.weather.stateCode <= 622) weatherglyph = 64+3; // snow
-            if(information.weather.stateCode <= 781) weatherglyph = 64+4; // atmosphere
-            if(information.weather.stateCode <= 800) weatherglyph = 64+5; // clear
-            if(information.weather.stateCode <= 804) weatherglyph = 64+0; // clouds
-            u8g2.drawGlyph(5, 35, weatherglyph);
+
+            u8g2.drawGlyph(5, 35, weather_statecode_to_glyph(information.weather.stateCode));
+            u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+            u8g2.drawStr(42, 18,(String(information.weather.temperature,1) + " C").c_str());
             u8g2.setFont(FONT_M);
-            u8g2.drawStr(42, 10,(String(information.weather.temperature,1) + " C").c_str());
-            u8g2.drawStr(42, 20,(String(information.weather.windSpeedKmh,0) + " kmh").c_str());
-            u8g2.drawStr(42, 30,(String(information.weather.stateShort)).c_str());
+            u8g2.drawStr(42, 28,(String(information.weather.windSpeedBft) + " Bft").c_str());
+            u8g2.drawStr(42, 38,(String(information.weather.stateShort)).c_str());
             u8g2.setFont(FONT_S);
-            u8g2.drawStr(POSX_CLOCK + 30, 60, ("B: " + String(circBuffer.available()) + " B").c_str());
+            u8g2.drawStr(POSX_CLOCK + 20, 60, ("B: " + String(circBuffer.available()) + " B").c_str());
           }
              
           
@@ -106,8 +104,8 @@ void draw_menu_home()
           {
             case SOUNDMODE_OFF:
             
-              u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "(Off)");
+              //u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+              //u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "");
               break;
             case SOUNDMODE_WEBRADIO:
               u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_radio_width, xbm_radio_height, xbm_radio_bits);
@@ -148,7 +146,7 @@ void draw_menu_home()
 
 void draw_menu_lamp()
 {
-    u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+    u8g2.setFont(FONT_M);
     u8g2.drawStr(10, 10, "Lamp");
     u8g2.setFont(FONT_S);
     u8g2.drawStr(2, 62, "Back                 Up                  Down");
@@ -180,7 +178,7 @@ void draw_menu_lamp()
 
 void draw_menu_system()
 {
-  u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+  u8g2.setFont(FONT_M);
   u8g2.drawStr(10, 10, "System");
   u8g2.setFont(FONT_S);
   u8g2.drawStr(2, 62, "Back                 Up                  Down");

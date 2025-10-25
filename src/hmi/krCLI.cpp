@@ -26,6 +26,7 @@ Command cmd_bootlog;
 Command cmd_log;
 Command cmd_effect;
 Command cmd_cat;
+Command cmd_fake;
 
 void cb_reset(cmd* c) 
 {
@@ -90,6 +91,17 @@ void cb_effect(cmd* c)
     if(cmd.getArgument("s").isSet())
     {
         lamp_seteffectspeed(cmd.getArgument("s").getValue().toFloat());
+    }
+}
+
+void cb_fake(cmd* c)
+{
+    Command cmd(c);
+    if(cmd.getArgument("weatherstate").isSet())
+    {
+        int code= cmd.getArgument("weatherstate").getValue().toInt();
+        log_debug("Faking weatherstate to " + String(code) );
+        information.weather.stateCode = code;
     }
 }
 
@@ -194,7 +206,9 @@ void cli_init(void)
     cmd_cat = kr_cli.addSingleArgumentCommand("cat", cb_cat);
     cmd_cat.setDescription("- Print contents of a file. Example: cat /settings/stations.json");
 
-
+    // > fake
+    cmd_fake = kr_cli.addCmd("fake", cb_fake);
+    cmd_fake.addArgument("weatherstate", "804");
 
 
 

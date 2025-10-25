@@ -16,6 +16,8 @@ struct FlagsFrontPanel
     bool buttonAlarmPressed;
     bool buttonLampPressed;
 
+    bool buttonAnyPressed;
+
 };
 
 //void frontpanel_setup();

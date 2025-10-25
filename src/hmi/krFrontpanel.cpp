@@ -32,7 +32,7 @@ RotaryEncoder encoder(ROTARY_A, ROTARY_B, RotaryEncoder::LatchMode::FOUR3);
 
 void button_press_handler(BfButton *btn, BfButton::press_pattern_t pattern)
 {
-    Serial.print(btn->getID());
+   Serial.print(btn->getID());
    switch(btn->getID())
    {
     case 0:
@@ -56,6 +56,8 @@ void button_press_handler(BfButton *btn, BfButton::press_pattern_t pattern)
     default:
         break;
    }
+
+   flags.frontPanel.buttonAnyPressed = true;
 
    /*  Serial.print(btn->getID());
   switch (pattern)  {

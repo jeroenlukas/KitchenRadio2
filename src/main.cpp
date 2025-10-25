@@ -234,8 +234,9 @@ void loop()
 
 
 // TODO change to flag
-  if((millis() - prev_millis > 500) || (flags.main.updateLog && (menu == MENU_HOME)))
+  if((millis() - prev_millis > 500) || (flags.main.updateLog && (menu == MENU_HOME)) || flags.frontPanel.buttonAnyPressed)
   {
+    if(flags.frontPanel.buttonAnyPressed) flags.frontPanel.buttonAnyPressed = false;
     prev_millis = millis();
     
     draw_menu();
@@ -511,7 +512,7 @@ void loop()
               lamp_toggle();
             break;
           case MITEM_LAMP_HUE:
-            lamp_sethue(information.lamp.hue + 0.05);
+            lamp_sethue(information.lamp.hue + 0.01);
             break;
           case MITEM_LAMP_EFFECTTYPE:
             if(information.lamp.effect_type < LAMP_EFFECT_MAX)
