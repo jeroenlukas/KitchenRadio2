@@ -15,6 +15,8 @@
 
 //#define DISPLAY_RETURN_TIME     20 //*100 ms
 
+#define CONF_MENU_RETURN_HOME_MS    10000
+
 // Multibutton ranges
 #define BTN_ADC_OFF_MIN         3400
 #define BTN_ADC_OFF_MAX         3600
@@ -68,9 +70,11 @@
 #define MITEM_LAMP_MIN          201
 #define MITEM_LAMP_STATE        201
 #define MITEM_LAMP_HUE          202
-#define MITEM_LAMP_EFFECTTYPE   203
-#define MITEM_LAMP_EFFECTSPEED  204
-#define MITEM_LAMP_MAX          204
+#define MITEM_LAMP_SATURATION   203
+#define MITEM_LAMP_LIGHTNESS    204
+#define MITEM_LAMP_EFFECTTYPE   205
+#define MITEM_LAMP_EFFECTSPEED  206
+#define MITEM_LAMP_MAX          207
 
 #define MITEM_SYSTEM_MIN        301
 #define MITEM_SYSTEM_INFO       301

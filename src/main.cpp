@@ -10,7 +10,7 @@
 #include <LittleFS.h>
 
 
-
+#include "TickTwo.h"
 
 #include "logger.h"
 #include "main.h"
@@ -43,12 +43,14 @@
 //Via tutorial from 
 SPIClass *hspi = NULL;
 
+void ticker_userinput();
+
 Ticker ticker_10ms_ref;
 Ticker ticker_100ms_ref;
 Ticker ticker_1000ms_ref;
 Ticker ticker_1min_ref;
 Ticker ticker_30min_ref;
-
+TickTwo ticker_userinput_ref(ticker_userinput, CONF_MENU_RETURN_HOME_MS);
 
 
 void ticker_10ms()
@@ -76,6 +78,12 @@ void ticker_1min()
   flags.main.passed1min = true;
 }
 
+void ticker_userinput()
+{
+  // Return to home menu
+  menu = MENU_HOME;
+}
+
 void setup() 
 {
   Serial.begin(115200);
@@ -96,7 +104,6 @@ void setup()
   log_boot_begin();
 
   log_boot("==== KitchenRadio2! ====");
-    // Version
   log_boot("Firmware version: " + String(KR_VERSION));
 
   // Littlefs
@@ -198,10 +205,6 @@ void setup()
   }
 
   // Set tone control
-  /*audioplayer_settone(int(settings["audio"]["toneControl"]["bassFreq"]), 
-                      int(settings["audio"]["toneControl"]["bassGain"]), 
-                      int(settings["audio"]["toneControl"]["trebleFreq"]), 
-                      int(settings["audio"]["toneControl"]["trebleGain"]));*/
   audioplayer_setbass(0);
   audioplayer_settreble(0);
 
@@ -219,7 +222,9 @@ void setup()
   ticker_100ms_ref.attach(0.1, ticker_100ms);
   ticker_1000ms_ref.attach(1.0, ticker_1000ms);
   ticker_30min_ref.attach(1.0 * 1800, ticker_30min);
-  ticker_1min_ref.attach(1.0 * 60, ticker_1min);
+  ticker_1min_ref.attach(1.0 * 60, ticker_1min);  
+  ticker_userinput_ref.start();
+  
 
   flags.frontPanel.volumePotChanged = true;
 
@@ -233,10 +238,10 @@ void loop()
 {
 
 
-// TODO change to flag
-  if((millis() - prev_millis > 500) || (flags.main.updateLog && (menu == MENU_HOME)) || flags.frontPanel.buttonAnyPressed)
+  // TODO change to flag
+  if((millis() - prev_millis > 500) || (flags.main.updateLog && (menu == MENU_HOME)))
   {
-    if(flags.frontPanel.buttonAnyPressed) flags.frontPanel.buttonAnyPressed = false;
+    //flags.frontPanel.buttonAnyPressed = false;
     prev_millis = millis();
     
     draw_menu();
@@ -280,6 +285,7 @@ void loop()
 
   }
 
+  ticker_userinput_ref.update();
 
   // -------------------------=== FLAGS ===--------------------------
 
@@ -403,7 +409,6 @@ void loop()
   {
     flags.frontPanel.buttonSystemPressed = false;
     log_debug("System");
-    //audioplayer_settone(2,0,15,0); // flat
     menu = MENU_SYSTEM;
     menuitem = MITEM_SYSTEM_INFO;
   }
@@ -412,7 +417,6 @@ void loop()
   {
     flags.frontPanel.buttonAlarmPressed = false;
     log_debug("Alarm");
-    //audioplayer_settone(15,15,3,-6); // bass boost treble cut
   }
   
   if(flags.frontPanel.buttonLampPressed)
@@ -462,6 +466,12 @@ void loop()
           case MITEM_LAMP_HUE:
             lamp_sethue(information.lamp.hue - 0.01);
             break;
+          case MITEM_LAMP_SATURATION:
+            lamp_setsaturation(information.lamp.saturation - 0.02);
+            break;
+          case MITEM_LAMP_LIGHTNESS:
+            lamp_setlightness(information.lamp.lightness - 0.02);
+            break;
           case MITEM_LAMP_EFFECTTYPE:
             if(information.lamp.effect_type > 0)
             {
@@ -469,7 +479,7 @@ void loop()
             }
             break;
           case MITEM_LAMP_EFFECTSPEED:
-            lamp_seteffectspeed(information.lamp.effect_speed - 0.0002);
+            lamp_seteffectspeed(information.lamp.effect_speed - 0.0001);
             break;
         }
         break;
@@ -514,6 +524,12 @@ void loop()
           case MITEM_LAMP_HUE:
             lamp_sethue(information.lamp.hue + 0.01);
             break;
+          case MITEM_LAMP_SATURATION:
+            lamp_setsaturation(information.lamp.saturation + 0.02);
+            break;
+          case MITEM_LAMP_LIGHTNESS:
+            lamp_setlightness(information.lamp.lightness + 0.02);
+            break;
           case MITEM_LAMP_EFFECTTYPE:
             if(information.lamp.effect_type < LAMP_EFFECT_MAX)
             {
@@ -539,6 +555,20 @@ void loop()
         }
     }
     
+  }
+
+  // Any button was pressed, or encoder turned
+  if(flags.frontPanel.buttonAnyPressed)
+  {
+    flags.frontPanel.buttonAnyPressed = false;
+    
+    log_debug("ANY button");
+    
+    draw_menu();
+
+    // Restart the ticker
+    ticker_userinput_ref.stop();
+    ticker_userinput_ref.start();
   }
 }
 

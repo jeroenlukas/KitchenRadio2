@@ -22,6 +22,9 @@ String bootlog;
 String logline;
 bool updateLog = false;
 
+void log_debug(String line);
+void log_debug(String line, bool log_to_serial);
+
 // Boot log
 
 void log_boot_begin()
@@ -62,9 +65,17 @@ void log_debug_init()
 
 void log_debug(String line)
 {
+    log_debug(line, true);
+}
+
+void log_debug(String line, bool log_to_serial)
+{
   logline = line + "\n";
   //updateLog = true;
   flags.main.updateLog = true;
+
+  if(log_to_serial)
+    Serial.println(">> " + line);
 }
 
 // Should only be called from u8g2 draw loop!

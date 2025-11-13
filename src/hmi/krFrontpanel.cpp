@@ -147,6 +147,7 @@ void front_read_buttons()
     if (digitalRead(BUTTON_ENCODER) < prev_button_encoder)
     {
         flags.frontPanel.encoderButtonPressed = true;
+        flags.frontPanel.buttonAnyPressed = true;
     }
 
 
@@ -191,11 +192,13 @@ void front_read_encoder()
         {
             //f_front_encoder_turn_right = true;
             flags.frontPanel.encoderTurnLeft = true;
+            flags.frontPanel.buttonAnyPressed = true;
         }
         else
         {
             //f_front_encoder_turn_left = true;
             flags.frontPanel.encoderTurnRight = true;
+            flags.frontPanel.buttonAnyPressed = true;
         }
         pos = newPos;
     }

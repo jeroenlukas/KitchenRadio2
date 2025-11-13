@@ -60,6 +60,7 @@ class Information {
             double windSpeedKmh;
             int windSpeedBft;
             int stateCode;
+            String icon;
         };
         
 

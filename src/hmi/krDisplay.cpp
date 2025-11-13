@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
+#include <Ticker.h>
 
 #include "configuration/config.h"
 #include "configuration/constants.h"
@@ -24,6 +25,8 @@ void draw_menu_lamp();
 void draw_menu_system();
 
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
+
+
 
 void draw_menu()
 {
@@ -68,14 +71,16 @@ void draw_menu_home()
             int weatherglyph = 0;
             // https://openweathermap.org/weather-conditions
 
-            u8g2.drawGlyph(5, 35, weather_statecode_to_glyph(information.weather.stateCode));
+            //u8g2.drawGlyph(5, 35, weather_statecode_to_glyph(information.weather.stateCode));
+            u8g2.drawGlyph(5, 35, weather_icon_to_glyph(information.weather.icon));
             u8g2.setFont(u8g2_font_lastapprenticebold_tr);
             u8g2.drawStr(42, 18,(String(information.weather.temperature,1) + " C").c_str());
             u8g2.setFont(FONT_M);
             u8g2.drawStr(42, 28,(String(information.weather.windSpeedBft) + " Bft").c_str());
             u8g2.drawStr(42, 38,(String(information.weather.stateShort)).c_str());
             u8g2.setFont(FONT_S);
-            u8g2.drawStr(POSX_CLOCK + 20, 60, ("B: " + String(circBuffer.available()) + " B").c_str());
+            if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+              u8g2.drawStr(POSX_CLOCK + 20, 60, ("B: " + String(circBuffer.available()) + " B").c_str());
           }
              
           
@@ -162,6 +167,14 @@ void draw_menu_lamp()
         u8g2.drawStr(10, 30, "Hue:");
         u8g2.drawStr(80, 30, String(information.lamp.hue, 3).c_str());
         break;
+      case MITEM_LAMP_SATURATION:
+        u8g2.drawStr(10, 30, "Saturation:");
+        u8g2.drawStr(80, 30, String(information.lamp.saturation, 3).c_str());
+        break;
+      case MITEM_LAMP_LIGHTNESS:
+        u8g2.drawStr(10, 30, "Brightness:");
+        u8g2.drawStr(80, 30, String(information.lamp.lightness, 3).c_str());
+        break;
       case MITEM_LAMP_EFFECTTYPE:
         u8g2.drawStr(10, 30, "Effect type:");
         //u8g2.drawStr(80, 30, String(information.lamp.effect_type).c_str());
@@ -190,6 +203,7 @@ void draw_menu_system()
       u8g2.drawStr(10, 32, "RSSI:");        u8g2.drawStr(70, 32, (String(information.system.wifiRSSI) + " dBm").c_str());
       u8g2.drawStr(10, 42, "Uptime:");      u8g2.drawStr(70, 42, (String(information.system.uptimeSeconds) + " sec").c_str());
       u8g2.drawStr(150, 22, "Amb.light:");  u8g2.drawStr(200, 22, (String(information.system.ldr) + "%").c_str());
+      u8g2.drawStr(150, 32, "Wind:");       u8g2.drawStr(200, 32, (String(information.weather.windSpeedKmh) + "kmh").c_str());
       break;
     case MITEM_SYSTEM_BASS:
       u8g2.drawStr(10, 30, "Bass:");        u8g2.drawStr(80, 30, String(information.audioPlayer.bass).c_str());

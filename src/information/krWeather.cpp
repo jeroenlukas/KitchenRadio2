@@ -8,6 +8,7 @@
 //#include "configMisc.h"
 
 int weather_statecode_to_glyph(int statecode);
+int weather_icon_to_glyph(String icon);
 int weather_windkmh_to_beaufort(double wind_kmh);
 
 HTTPClient http;
@@ -42,10 +43,12 @@ bool weather_retrieve()
         information.weather.windSpeedKmh = ((double)(doc["wind"]["speed"])) ;
         information.weather.windSpeedBft = weather_windkmh_to_beaufort(information.weather.windSpeedKmh);
         information.weather.stateCode = (int)(doc["weather"][0]["id"]);
+        String weather_icon = doc["weather"][0]["icon"];
+        information.weather.icon = weather_icon;
         //information.weather.windSpeedBft = doc["main"]
 
-        Serial.println("\nkm/h:" + String(information.weather.windSpeedKmh));
-        Serial.println("\nbft: " + String(information.weather.windSpeedBft));
+        Serial.println("\nWeather icon:" + information.weather.icon);
+        
         
         ret = true;
     }
@@ -138,6 +141,36 @@ int weather_statecode_to_glyph(int statecode)
     return glyph;
 
     
+}
+
+int weather_icon_to_glyph(String icon)
+{
+    if(icon == "01d") return 73; // Clear
+    if(icon == "01n") return 78;
+
+    if(icon == "02d") return 34; // Few clouds
+    if(icon == "02n") return 35;
+
+    if(icon == "03d") return 33; // Scattered clouds
+    if(icon == "03n") return 33;
+
+    if(icon == "04d") return 33; // Broken clouds
+    if(icon == "04n") return 33; 
+
+    if(icon == "09d") return 36; // Shower rain (heavier than 'rain')
+    if(icon == "09n") return 36;
+
+    if(icon == "10d") return 37; // Rain
+    if(icon == "10n") return 38;
+
+    if(icon == "11d") return 70; // Thunderstorm
+    if(icon == "11n") return 70;
+
+    if(icon == "13d") return 54; // Snow
+    if(icon == "13n") return 56;
+
+    if(icon == "50d") return 63; // Mist
+    if(icon == "50n") return 65;
 }
 
 int weather_windkmh_to_beaufort(double wind_kmh)
