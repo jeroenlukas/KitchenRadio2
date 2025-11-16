@@ -16,6 +16,13 @@ struct FlagsFrontPanel
     bool buttonAlarmPressed;
     bool buttonLampPressed;
 
+    bool buttonOffLongPressed;
+    bool buttonRadioLongPressed;
+    bool buttonBluetoothLongPressed;
+    bool buttonSystemLongPressed;
+    bool buttonAlarmLongPressed;
+    bool buttonLampLongPressed;
+
     bool buttonAnyPressed;
 
 };

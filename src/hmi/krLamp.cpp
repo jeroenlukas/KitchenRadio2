@@ -16,7 +16,7 @@ Ticker ticker_effect_100ms_ref;
 NeoPixelBus<NeoGrbFeature, NeoWs2812xMethod> strip(PixelCount, PixelPin);
 
 
-bool lamp_state = false;
+//bool lamp_state = false;
 
 
 void ticker_effect_100ms()
@@ -43,6 +43,7 @@ void lamp_init()
     information.lamp.effect_type = LAMP_EFFECT_NONE; // No effect
     information.lamp.effect_speed = 0.001;
 
+    information.lamp.state = false;
     information.lamp.hue = 0.2;
     information.lamp.saturation = 1.0;
     information.lamp.lightness = 0.3;
@@ -56,7 +57,10 @@ void lamp_update()
 
     hsl.H = information.lamp.hue;
     hsl.S = information.lamp.saturation;
-    hsl.L = information.lamp.lightness;
+    
+    if(information.lamp.state)
+        hsl.L = information.lamp.lightness;
+    else hsl.L = 0.0;
 
     for(int i = 0; i < LED_RING_NUM_LEDS; i++)
     {
@@ -64,29 +68,20 @@ void lamp_update()
     }
     strip.Show();
 
-    lamp_state = (information.lamp.lightness > 0.0);
-    digitalWrite(LED_LAMP, lamp_state);
+    digitalWrite(LED_LAMP, information.lamp.state);
 }
 
 void lamp_toggle()
 {
-    if(lamp_state)
-    {
-        lamp_off();
-        //information.lamp.effect = LAMP_EFFECT_NONE;
-        information.lamp.state = false;
-    }
-    else
-    {
-        lamp_setlightness(0.5);
-        lamp_update();
-        information.lamp.state = true;
-    }
+    information.lamp.state = !information.lamp.state;
+
+    lamp_update();
 }
 
 void lamp_off()
 {
-    lamp_setlightness(0.0);    
+    information.lamp.state = false;
+    lamp_update();
 }
 
 // H, S values (0.0 - 1.0)
@@ -116,6 +111,5 @@ void lamp_seteffecttype(uint8_t effect)
 
 void lamp_seteffectspeed(float speed)
 {
-
     information.lamp.effect_speed = constrain(speed, 0.000001, 0.5);     
 }

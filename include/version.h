@@ -1,6 +1,6 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-#define KR_VERSION "0.2.13"
+#define KR_VERSION "0.2.14"
 
 #endif

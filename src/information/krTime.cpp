@@ -18,7 +18,7 @@ void time_init()
 
 void time_waitForSync()
 {
-    waitForSync();
+    waitForSync(5);
 
     time_update();
 }

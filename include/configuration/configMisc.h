@@ -74,7 +74,7 @@
 #define MITEM_LAMP_LIGHTNESS    204
 #define MITEM_LAMP_EFFECTTYPE   205
 #define MITEM_LAMP_EFFECTSPEED  206
-#define MITEM_LAMP_MAX          207
+#define MITEM_LAMP_MAX          206
 
 #define MITEM_SYSTEM_MIN        301
 #define MITEM_SYSTEM_INFO       301

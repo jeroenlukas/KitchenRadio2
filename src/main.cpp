@@ -424,8 +424,14 @@ void loop()
     flags.frontPanel.buttonLampPressed = false;
     menu = MENU_LAMP;
     menuitem = MITEM_LAMP_STATE;
-    lamp_toggle();
+    //lamp_toggle();
 
+  }
+
+  if(flags.frontPanel.buttonLampLongPressed)
+  {
+    flags.frontPanel.buttonLampLongPressed = false;
+    lamp_toggle();
   }
 
   if (flags.frontPanel.encoderButtonPressed)
@@ -460,7 +466,7 @@ void loop()
         switch(menuitem)
         {
           case MITEM_LAMP_STATE:
-            if(information.lamp.state)
+            //if(information.lamp.state)
               lamp_toggle();
             break;
           case MITEM_LAMP_HUE:

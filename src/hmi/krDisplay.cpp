@@ -9,6 +9,7 @@
 #include "settings/krSettings.h"
 #include "audioplayer/krAudioplayer.h"
 #include "logger.h"
+#include "hmi/krDisplay.h"
 
 #include "hmi/xbmIcons.h"
 
@@ -20,16 +21,17 @@ int menuitem = 0;
 String mitem_lamp_state_desc[2] = {"off", "on"};
 String mitem_lamp_effecttype_desc[2] = {"off", "color fade"};
 
+void draw_menu_footer(uint16_t mitem_min, uint16_t mitem_max);
 void draw_menu_home();
 void draw_menu_lamp();
 void draw_menu_system();
 
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
 
-
-
 void draw_menu()
 {
+
+
   u8g2.firstPage();
 
     // This draws the main screen. Only screen related stuff should be done here.
@@ -149,52 +151,67 @@ void draw_menu_home()
           log_debug_draw();
 }
 
+void draw_menu_footer(uint16_t mitem_min, uint16_t mitem_max)
+{
+  u8g2.drawLine(0, 48, 256, 48);
+
+  u8g2.setFont(u8g2_font_6x12_m_symbols);
+  u8g2.drawGlyph(10, 62, 8626); // Back
+
+  if(menuitem > mitem_min)
+  u8g2.drawGlyph(82, 62, 9650); // Up
+
+  if(menuitem < mitem_max)
+    u8g2.drawGlyph(146, 62, 9660); // Down
+}
+
 void draw_menu_lamp()
 {
-    u8g2.setFont(FONT_M);
-    u8g2.drawStr(10, 10, "Lamp");
-    u8g2.setFont(FONT_S);
-    u8g2.drawStr(2, 62, "Back                 Up                  Down");
+  draw_menu_footer(MITEM_LAMP_MIN, MITEM_LAMP_MAX);
 
+  u8g2.setFont(FONT_M);
+  u8g2.drawStr(10, 10, "Lamp");
+  u8g2.setFont(FONT_S);
     
-    switch(menuitem)
-    {
-      case MITEM_LAMP_STATE:
-        u8g2.drawStr(10, 30, "State:");
-        u8g2.drawStr(80, 30, mitem_lamp_state_desc[information.lamp.state].c_str());
-        break;
-      case MITEM_LAMP_HUE:
-        u8g2.drawStr(10, 30, "Hue:");
-        u8g2.drawStr(80, 30, String(information.lamp.hue, 3).c_str());
-        break;
-      case MITEM_LAMP_SATURATION:
-        u8g2.drawStr(10, 30, "Saturation:");
-        u8g2.drawStr(80, 30, String(information.lamp.saturation, 3).c_str());
-        break;
-      case MITEM_LAMP_LIGHTNESS:
-        u8g2.drawStr(10, 30, "Brightness:");
-        u8g2.drawStr(80, 30, String(information.lamp.lightness, 3).c_str());
-        break;
-      case MITEM_LAMP_EFFECTTYPE:
-        u8g2.drawStr(10, 30, "Effect type:");
-        //u8g2.drawStr(80, 30, String(information.lamp.effect_type).c_str());
-        u8g2.drawStr(80, 30, mitem_lamp_effecttype_desc[information.lamp.effect_type].c_str());
-        break;
-      case MITEM_LAMP_EFFECTSPEED:
-        u8g2.drawStr(10, 30, "Effect speed:");
-        u8g2.drawStr(80, 30, String((information.lamp.effect_speed), 4).c_str());
-        break;
-      default:
-        break;
-    }
+  switch(menuitem)
+  {
+    case MITEM_LAMP_STATE:
+      u8g2.drawStr(10, 30, "State:");
+      u8g2.drawStr(80, 30, mitem_lamp_state_desc[information.lamp.state].c_str());
+      break;
+    case MITEM_LAMP_HUE:
+      u8g2.drawStr(10, 30, "Hue:");
+      u8g2.drawStr(80, 30, String(information.lamp.hue, 3).c_str());
+      break;
+    case MITEM_LAMP_SATURATION:
+      u8g2.drawStr(10, 30, "Saturation:");
+      u8g2.drawStr(80, 30, String(information.lamp.saturation, 3).c_str());
+      break;
+    case MITEM_LAMP_LIGHTNESS:
+      u8g2.drawStr(10, 30, "Brightness:");
+      u8g2.drawStr(80, 30, String(information.lamp.lightness, 3).c_str());
+      break;
+    case MITEM_LAMP_EFFECTTYPE:
+      u8g2.drawStr(10, 30, "Effect type:");
+      //u8g2.drawStr(80, 30, String(information.lamp.effect_type).c_str());
+      u8g2.drawStr(80, 30, mitem_lamp_effecttype_desc[information.lamp.effect_type].c_str());
+      break;
+    case MITEM_LAMP_EFFECTSPEED:
+      u8g2.drawStr(10, 30, "Effect speed:");
+      u8g2.drawStr(80, 30, String((information.lamp.effect_speed), 4).c_str());
+      break;
+    default:
+      break;
+  }
 }
 
 void draw_menu_system()
 {
+  draw_menu_footer(MITEM_SYSTEM_MIN, MITEM_SYSTEM_MAX);
+
   u8g2.setFont(FONT_M);
   u8g2.drawStr(10, 10, "System");
   u8g2.setFont(FONT_S);
-  u8g2.drawStr(2, 62, "Back                 Up                  Down");
 
   switch(menuitem)
   {

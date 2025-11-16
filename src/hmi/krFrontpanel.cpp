@@ -74,6 +74,38 @@ void button_press_handler(BfButton *btn, BfButton::press_pattern_t pattern)
 }
 
 
+void button_longpress_handler(BfButton *btn, BfButton::press_pattern_t pattern)
+{
+   Serial.print(btn->getID());
+   switch(btn->getID())
+   {
+    case 0:
+        flags.frontPanel.buttonOffLongPressed = true;
+        break;
+    case 1:
+        flags.frontPanel.buttonRadioLongPressed = true;
+        break;
+    case 2:
+        flags.frontPanel.buttonBluetoothLongPressed = true;
+        break;
+    case 3:
+        flags.frontPanel.buttonSystemLongPressed = true;
+        break;
+    case 4:
+        flags.frontPanel.buttonAlarmLongPressed = true;
+        break;
+    case 5:
+        flags.frontPanel.buttonLampLongPressed = true;
+        break;
+    default:
+        break;
+   }
+
+   flags.frontPanel.buttonAnyPressed = true;
+}
+
+
+
 void front_led_on(uint8_t led)
 {
     digitalWrite(led, 1);
@@ -98,32 +130,32 @@ void front_init()
     // Buttons
     btn_off.onPress(button_press_handler);
     btn_off.onDoublePress(button_press_handler);
-    btn_off.onPressFor(button_press_handler, 1000);
+    btn_off.onPressFor(button_longpress_handler, 1000);
     buttonmanager.addButton(&btn_off, BTN_ADC_OFF_MIN, BTN_ADC_OFF_MAX);
 
     btn_radio.onPress(button_press_handler);
     btn_radio.onDoublePress(button_press_handler);
-    btn_radio.onPressFor(button_press_handler, 1000);
+    btn_radio.onPressFor(button_longpress_handler, 1000);
     buttonmanager.addButton(&btn_radio, BTN_ADC_RADIO_MIN, BTN_ADC_RADIO_MAX);
 
     btn_bluetooth.onPress(button_press_handler);
     btn_bluetooth.onDoublePress(button_press_handler);
-    btn_bluetooth.onPressFor(button_press_handler, 1000);
+    btn_bluetooth.onPressFor(button_longpress_handler, 1000);
     buttonmanager.addButton(&btn_bluetooth, BTN_ADC_BLUETOOTH_MIN, BTN_ADC_BLUETOOTH_MAX);
 
     btn_system.onPress(button_press_handler);
     btn_system.onDoublePress(button_press_handler);
-    btn_system.onPressFor(button_press_handler, 1000);
+    btn_system.onPressFor(button_longpress_handler, 1000);
     buttonmanager.addButton(&btn_system, BTN_ADC_SYSTEM_MIN, BTN_ADC_SYSTEM_MAX);
 
     btn_alarm.onPress(button_press_handler);
     btn_alarm.onDoublePress(button_press_handler);
-    btn_alarm.onPressFor(button_press_handler, 1000);
+    btn_alarm.onPressFor(button_longpress_handler, 1000);
     buttonmanager.addButton(&btn_alarm, BTN_ADC_ALARM_MIN,BTN_ADC_ALARM_MAX);
 
     btn_lamp.onPress(button_press_handler);
     btn_lamp.onDoublePress(button_press_handler);
-    btn_lamp.onPressFor(button_press_handler, 1000);
+    btn_lamp.onPressFor(button_longpress_handler, 1000);
     buttonmanager.addButton(&btn_lamp,BTN_ADC_LAMP_MIN,BTN_ADC_LAMP_MAX); 
     
     buttonmanager.begin();
