@@ -24,4 +24,6 @@ enum menuitem {}*/
 extern int menu;
 extern int menuitem;
 
+extern U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2;	// Enable U8G2_16BIT in u8g2.h
+
 #endif

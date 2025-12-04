@@ -46,10 +46,10 @@ class Information {
 
         struct Webradio
         {
-            uint8_t stationIndex;
-            String stationName;
+            uint8_t station_index;
+            String station_name;
 
-            uint8_t stationCount;
+            uint8_t station_count;
         };
 
         struct Weather

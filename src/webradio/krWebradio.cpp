@@ -14,8 +14,8 @@ WiFiClient webradio_client;
 
 String webradio_read_stations();
 
-uint8_t webradio_stationIndex = 0;
-uint8_t webradio_numStations = 0;
+//uint8_t webradio_stationIndex = 0;
+//uint8_t webradio_numStations = 0;
 
 bool dataPanic = false;
 
@@ -133,8 +133,8 @@ bool webradio_open_station(uint8_t index)
     Serial.println(stationName);
     Serial.println(url);
 
-    information.webRadio.stationIndex = index;
-    information.webRadio.stationName = stationName;
+    information.webRadio.station_index = index;
+    information.webRadio.station_name = stationName;
     // Split url in host and path
     // example: stream.bnr.nl/bnr_mp3_128_20
     uint16_t firstSlash = url.indexOf("/", 8);

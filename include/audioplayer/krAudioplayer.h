@@ -15,6 +15,7 @@ extern uint8_t audioplayer_soundMode;
 extern char readBuffer[4096] __attribute__((aligned(4)));
 
 void audioplayer_init();
+void audioplayer_setvolume(uint8_t volume);
 void audioplayer_set_soundmode(uint8_t soundMode);
 void audioplayer_feedbuffer();
 void audioplayer_flushbuffer();

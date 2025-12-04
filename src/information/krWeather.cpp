@@ -13,7 +13,7 @@ int weather_windkmh_to_beaufort(double wind_kmh);
 
 HTTPClient http;
 
-const String endpoint = "http://api.openweathermap.org/data/2.5/weather?q=Zierikzee,nl&units=metric&lang=nl&APPID=";
+const String endpoint = "http://api.openweathermap.org/data/2.5/weather?q=Ouwerkerk,nl&units=metric&lang=nl&APPID=";
 const String key = CONFIG_OPENWEATHER_KEY;
 
 float weather_temperature = 0.0;
@@ -40,7 +40,7 @@ bool weather_retrieve()
         Serial.print(payload);
         information.weather.stateShort = weather_type;
         information.weather.temperature = doc["main"]["temp"];        
-        information.weather.windSpeedKmh = ((double)(doc["wind"]["speed"])) ;
+        information.weather.windSpeedKmh = ((double)(doc["wind"]["speed"])) * 3.6;
         information.weather.windSpeedBft = weather_windkmh_to_beaufort(information.weather.windSpeedKmh);
         information.weather.stateCode = (int)(doc["weather"][0]["id"]);
         String weather_icon = doc["weather"][0]["icon"];

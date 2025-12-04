@@ -6,8 +6,10 @@ struct FlagsFrontPanel
     bool volumePotChanged;
 
     bool encoderButtonPressed;
-    bool encoderTurnRight;
-    bool encoderTurnLeft;
+    bool encoder1TurnRight;
+    bool encoder1TurnLeft;
+    bool encoder2TurnRight;
+    bool encoder2TurnLeft;
 
     bool buttonOffPressed;
     bool buttonRadioPressed;

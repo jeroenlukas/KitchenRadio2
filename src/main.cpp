@@ -55,12 +55,13 @@ TickTwo ticker_userinput_ref(ticker_userinput, CONF_MENU_RETURN_HOME_MS);
 
 void ticker_10ms()
 {
-  front_read_pots();
+  //front_read_pots();
 }
 
 void ticker_100ms()
 {
-  front_read_buttons();  
+  //front_read_buttons();  
+  front_buttons_read();
 }
 
 void ticker_1000ms()
@@ -87,7 +88,11 @@ void ticker_userinput()
 void setup() 
 {
   Serial.begin(115200);
+
+  delay(100);
+
   Serial.print("KitchenRadio 2");
+  delay(100);  
 
   cli_init();
 
@@ -135,8 +140,8 @@ void setup()
   delay(300);
 
 
-  information.webRadio.stationCount = webradio_get_num_stations();
-  log_boot("Stations: " + String( information.webRadio.stationCount));
+  information.webRadio.station_count = webradio_get_num_stations();
+  log_boot("Stations: " + String( information.webRadio.station_count));
   // WiFi setup
 
   log_boot("Connecting to WiFi...");
@@ -226,7 +231,7 @@ void setup()
   ticker_userinput_ref.start();
   
 
-  flags.frontPanel.volumePotChanged = true;
+  //flags.frontPanel.volumePotChanged = true;
 
   // Debug log on main screen
   log_debug_init();
@@ -251,13 +256,15 @@ void loop()
 
   webserver_cleanup_clients();
   
-  front_multibuttons_loop();
+  //front_multibuttons_loop();
+
+  front_handle();
 
   webradio_handle_stream();
 
   audioplayer_feedbuffer();
 
-  front_read_encoder();
+  //front_read_encoder();
 
   //mon_receiveCommand();
   if (Serial.available()) 
@@ -295,7 +302,7 @@ void loop()
   {
     flags.main.passed1000ms = false;
 
-    front_read_ldr();
+    front_ldr_read();
 
     kcx_getstatus();
 
@@ -319,7 +326,7 @@ void loop()
   }
 
   // --------------------------- Events ----------------------------
-
+/*
   if (flags.frontPanel.volumePotChanged)
   {
     flags.frontPanel.volumePotChanged = false;
@@ -344,7 +351,7 @@ void loop()
     }
 
     log_debug("Volume: " + String(information.audioPlayer.volume));
-  }
+  }*/
 
   if(flags.frontPanel.buttonOffPressed)
   {
@@ -446,20 +453,30 @@ void loop()
     }
   }
 
-  if (flags.frontPanel.encoderTurnLeft)
+  if(flags.frontPanel.encoder1TurnLeft)
   {
-    flags.frontPanel.encoderTurnLeft = false;
+    flags.frontPanel.encoder1TurnLeft = false;
+    if(information.audioPlayer.volume >= 5) audioplayer_setvolume(information.audioPlayer.volume - 1);
+  }
+  if(flags.frontPanel.encoder1TurnRight)
+  {
+    flags.frontPanel.encoder1TurnRight = false;
+    if(information.audioPlayer.volume <= 95) audioplayer_setvolume(information.audioPlayer.volume + 1);
+  }
+
+  if (flags.frontPanel.encoder2TurnLeft)
+  {
+    flags.frontPanel.encoder2TurnLeft = false;
 
     switch(menu)
     {
       case MENU_HOME:
         if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
         {
-          if(webradio_stationIndex > 0)
+          if(information.webRadio.station_index > 0)
           {
-            webradio_stationIndex--;
-            webradio_open_station(webradio_stationIndex);
-          }      
+            webradio_open_station(information.webRadio.station_index - 1);
+          }
         }
         break;
       case MENU_LAMP:
@@ -504,19 +521,18 @@ void loop()
     }
   }
 
-  if (flags.frontPanel.encoderTurnRight)
+  if (flags.frontPanel.encoder2TurnRight)
   {
-    flags.frontPanel.encoderTurnRight = false;
+    flags.frontPanel.encoder2TurnRight = false;
 
     switch(menu)
     {
       case MENU_HOME:
         if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
         {
-          if(webradio_stationIndex < information.webRadio.stationCount - 1)
+          if(information.webRadio.station_index < information.webRadio.station_count - 1)
           {
-            webradio_stationIndex++;      
-            webradio_open_station(webradio_stationIndex);
+            webradio_open_station(information.webRadio.station_index + 1);
           }
         }
         break;

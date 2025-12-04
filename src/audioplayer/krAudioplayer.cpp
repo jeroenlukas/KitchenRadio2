@@ -39,10 +39,18 @@ void audioplayer_init()
     player.setVolume(80);
 }
 
+void audioplayer_setvolume(uint8_t volume)
+{
+    volume = constrain(volume, 0, 100);
+    information.audioPlayer.volume = volume;
+    
+    player.setVolume(log(information.audioPlayer.volume + 1) / log(127) * 100);    
+}
+
 void audioplayer_set_soundmode(uint8_t soundMode)
 {
-    front_led_off(LED_WEBRADIO);
-    front_led_off(LED_BLUETOOTH);
+    //front_led_off(LED_WEBRADIO);
+    //front_led_off(LED_BLUETOOTH);
 
     // Current soundmode
     switch(audioplayer_soundMode)
@@ -70,12 +78,12 @@ void audioplayer_set_soundmode(uint8_t soundMode)
 
         case SOUNDMODE_WEBRADIO:
             webradio_open_station(0);
-            front_led_on(LED_WEBRADIO);
+            //front_led_on(LED_WEBRADIO);
             log_debug("Radio mode");
             break;
 
         case SOUNDMODE_BLUETOOTH:
-            front_led_on(LED_BLUETOOTH);
+           // front_led_on(LED_BLUETOOTH);
             log_debug("Bluetooth mode");
             kcx_start();
 

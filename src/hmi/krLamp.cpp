@@ -68,7 +68,7 @@ void lamp_update()
     }
     strip.Show();
 
-    digitalWrite(LED_LAMP, information.lamp.state);
+    //digitalWrite(LED_LAMP, information.lamp.state);
 }
 
 void lamp_toggle()

@@ -28,6 +28,8 @@ void draw_menu_system();
 
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
 
+
+
 void draw_menu()
 {
 
@@ -83,6 +85,8 @@ void draw_menu_home()
             u8g2.setFont(FONT_S);
             if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
               u8g2.drawStr(POSX_CLOCK + 20, 60, ("B: " + String(circBuffer.available()) + " B").c_str());
+
+            u8g2.drawStr(155, 60, ("Vol: " + String(information.audioPlayer.volume) + "%").c_str());
           }
              
           
@@ -117,7 +121,7 @@ void draw_menu_home()
             case SOUNDMODE_WEBRADIO:
               u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_radio_width, xbm_radio_height, xbm_radio_bits);
               u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, (String(information.webRadio.stationIndex + 1) + "/" + String(information.webRadio.stationCount) + " " + (information.webRadio.stationName)).c_str());
+              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, (String(information.webRadio.station_index + 1) + "/" + String(information.webRadio.station_count) + " " + (information.webRadio.station_name)).c_str());
               break;
             case SOUNDMODE_BLUETOOTH:
               u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_bluetooth_width, xbm_bluetooth_height, xbm_bluetooth_bits);

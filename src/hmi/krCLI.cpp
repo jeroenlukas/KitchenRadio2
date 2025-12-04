@@ -12,6 +12,7 @@
 #include "information/krInfo.h"
 #include "logger.h"
 #include "hmi/krLamp.h"
+#include "hmi/krDisplay.h"
 
 #include <SimpleCLI.h>
 
@@ -27,6 +28,7 @@ Command cmd_log;
 Command cmd_effect;
 Command cmd_cat;
 Command cmd_fake;
+Command cmd_oled;
 
 void cb_reset(cmd* c) 
 {
@@ -53,6 +55,12 @@ void cb_soundmode(cmd* c)
 void cb_volume(cmd* c)
 {
     Command cmd(c);    
+
+    if(cmd.getArgument(0).isSet())
+    {
+        uint8_t volume = cmd.getArgument(0).getValue().toInt();
+        audioplayer_setvolume(volume);
+    }
 }
 
 void cb_lamp(cmd* c)
@@ -105,6 +113,69 @@ void cb_fake(cmd* c)
     }
 }
 
+void cb_oled(cmd* c) 
+{
+    Command cmd(c);
+    if(cmd.getArgument("contrast").isSet())
+    {
+        int val = cmd.getArgument("contrast").getValue().toInt();
+        log_debug("[OLED] Set contast to " + String(val));
+        u8g2.setContrast(val);
+    }
+    
+    else if(cmd.getArgument("on").isSet())
+    {
+        log_debug("[OLED] Turn whole OLED on");
+        u8g2.sendF("c", 0xAF);
+    }    
+    else if(cmd.getArgument("off").isSet())
+    {
+        log_debug("[OLED] Turn whole OLED off");
+        u8g2.sendF("c", 0xAE);
+    }
+
+    else if(cmd.getArgument("allon").isSet())
+    {
+        log_debug("[OLED] Turn all pixels on");
+        u8g2.sendF("c", 0xA5);
+    }
+    else if(cmd.getArgument("alloff").isSet())
+    {
+        log_debug("[OLED] Turn whole OLED off");
+        u8g2.sendF("c", 0xA6);
+    }
+    else if(cmd.getArgument("normal").isSet())
+    {
+        log_debug("[OLED] Turn OLED normal");
+        u8g2.sendF("c", 0xA6);
+    }
+    else if(cmd.getArgument("inverse").isSet())
+    {
+        log_debug("[OLED] Turn OLED inverse");
+        u8g2.sendF("c", 0xA7);
+    }
+    
+    if(cmd.getArgument("mcurr").isSet())
+    {
+        int val = constrain(cmd.getArgument("mcurr").getValue().toInt(), 0b0000, 0b1111);
+        log_debug("[OLED] Set master current byte to " + String(val));
+        u8g2.sendF("ca", 0xC7, val);
+    }
+    if(cmd.getArgument("pcv").isSet())
+    {
+        int val = constrain(cmd.getArgument("pcv").getValue().toInt(), 0b00000, 0b11111);
+        log_debug("[OLED] Set pre charge voltage byte to " + String(val));
+        u8g2.sendF("ca", 0xBB, val);
+    }
+    if(cmd.getArgument("clock").isSet())
+    {
+        int val = constrain(cmd.getArgument("clock").getValue().toInt(), 0b00000000, 0b11111111);
+        log_debug("[OLED] Set clock/osc byte to " + String(val));
+        u8g2.sendF("ca", 0xB3, val);
+    }
+
+}
+
 void cb_bootlog(cmd* c)
 {
     Serial.print(bootlog);
@@ -148,6 +219,8 @@ void cb_cat(cmd* c)
 
     file_cat.close();
 }
+
+
 
 void cb_error(cmd_error* e) {
     CommandError cmdError(e); // Create wrapper object
@@ -210,7 +283,21 @@ void cli_init(void)
     cmd_fake = kr_cli.addCmd("fake", cb_fake);
     cmd_fake.addArgument("weatherstate", "804");
 
+    // > oled
+    cmd_oled = kr_cli.addCmd("oled", cb_oled);
+    cmd_oled.addArgument("c/ontrast", "100");
+    cmd_oled.addFlagArgument("on");
+    cmd_oled.addFlagArgument("off");
+    cmd_oled.addFlagArgument("allon");
+    cmd_oled.addFlagArgument("alloff");
+    cmd_oled.addFlagArgument("normal");
+    cmd_oled.addFlagArgument("inverse");
+    cmd_oled.addArgument("clock", "0");
+    cmd_oled.addArgument("pcv", "0");    // Pre charge voltage
+    cmd_oled.addArgument("mcurr", "0");  // Master current
 
+    // > volume
+    cmd_volume = kr_cli.addSingleArgCmd("volume", cb_volume);
 
 
 }
