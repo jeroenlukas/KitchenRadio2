@@ -97,14 +97,14 @@ void setup()
   cli_init();
 
   hspi = new SPIClass(HSPI);
-  hspi->begin(HSPI_SCK, HSPI_MISO, HSPI_MOSI, HSPI_CS);
-
-  front_init();
+  hspi->begin(HSPI_SCK, HSPI_MISO, HSPI_MOSI, HSPI_CS);  
 
   u8g2.begin(); 
   u8g2.setFont(FONT_BOOTLOG);
 
-  u8g2.setContrast(1);
+  display_set_brightness(100);
+
+  front_init();
 
   log_boot_begin();
 
@@ -125,9 +125,6 @@ void setup()
   kcx_init();
 
   audioplayer_set_soundmode(SOUNDMODE_OFF);
-
-  
-
  
   delay(300);
   // ESP info
@@ -172,8 +169,6 @@ void setup()
   log_boot("Init led ring");
   lamp_init();
 
-  //log_boot(localTimezone.dateTime("D d M"));
-
   // Should be moved to top
   log_boot("Loading settings");
   settings_read_config();
@@ -187,10 +182,6 @@ void setup()
   time_waitForSync();
   const char * tz = settings["clock"]["timezone"];
   log_boot("Timezone:" + String(tz));
-
-  
-
-  delay(300);
 
   // PSRAM buffer
   circBuffer.resize(CIRCBUFFER_SIZE);
@@ -221,6 +212,9 @@ void setup()
 
   delay(100);
 
+  // Turn off leds
+  front_led_off(MCP_LED_WEBRADIO);
+  front_led_off(MCP_LED_BLUETOOTH);
 
   // Tickers
   ticker_10ms_ref.attach(0.01, ticker_10ms);
@@ -231,7 +225,7 @@ void setup()
   ticker_userinput_ref.start();
   
 
-  //flags.frontPanel.volumePotChanged = true;
+  audioplayer_setvolume(50);
 
   // Debug log on main screen
   log_debug_init();
@@ -249,48 +243,20 @@ void loop()
     //flags.frontPanel.buttonAnyPressed = false;
     prev_millis = millis();
     
-    draw_menu();
+    display_draw_menu();
   }
  
   kcx_read();
 
   webserver_cleanup_clients();
   
-  //front_multibuttons_loop();
-
   front_handle();
 
   webradio_handle_stream();
 
   audioplayer_feedbuffer();
 
-  //front_read_encoder();
-
-  //mon_receiveCommand();
-  if (Serial.available()) 
-  {
-    static char commandbuffer[100] = "";
-    static uint8_t commandbuffer_idx = 0;
-
-    char inp = Serial.read();
-    Serial.print('\r');
-    //Serial.print((char)inp);
-    
-    commandbuffer[commandbuffer_idx] = inp;
-    commandbuffer_idx ++;
-    commandbuffer[commandbuffer_idx] = '\0';
-
-    Serial.print(commandbuffer);
-
-    if(inp == '\n')
-    {
-      
-      String commandstr = String(commandbuffer);
-      cli_parse(commandstr);
-      commandbuffer_idx = 0;
-    }
-
-  }
+  cli_handle();
 
   ticker_userinput_ref.update();
 
@@ -303,6 +269,8 @@ void loop()
     flags.main.passed1000ms = false;
 
     front_ldr_read();
+
+    display_set_brightness_auto();
 
     kcx_getstatus();
 
@@ -325,33 +293,7 @@ void loop()
     weather_retrieve();
   }
 
-  // --------------------------- Events ----------------------------
-/*
-  if (flags.frontPanel.volumePotChanged)
-  {
-    flags.frontPanel.volumePotChanged = false;
-
-    if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
-    {
-      player.setVolume(log(information.audioPlayer.volume + 1) / log(127) * 100);
-      Serial.println(information.audioPlayer.volume);
-    }
-    else if(audioplayer_soundMode == SOUNDMODE_BLUETOOTH)
-    {
-      uint16_t rec_gain = 1; // 1024 = 1.0x digital gain! - checken of setVolume() ook werkt bij recording mode.
-      if(information.audioPlayer.volume == 0)
-      {
-        rec_gain = 1;
-      }
-
-      else rec_gain = information.audioPlayer.volume * 10;
-      player.setVolume(100);
-      player.writeRegister(0xD, rec_gain); // recording gian
-      Serial.println("rec_gain: " + String(rec_gain));
-    }
-
-    log_debug("Volume: " + String(information.audioPlayer.volume));
-  }*/
+  // --------------------------- User Events ----------------------------
 
   if(flags.frontPanel.buttonOffPressed)
   {
@@ -456,12 +398,12 @@ void loop()
   if(flags.frontPanel.encoder1TurnLeft)
   {
     flags.frontPanel.encoder1TurnLeft = false;
-    if(information.audioPlayer.volume >= 5) audioplayer_setvolume(information.audioPlayer.volume - 1);
+    if(information.audioPlayer.volume > 3) audioplayer_setvolume(information.audioPlayer.volume - 3);
   }
   if(flags.frontPanel.encoder1TurnRight)
   {
     flags.frontPanel.encoder1TurnRight = false;
-    if(information.audioPlayer.volume <= 95) audioplayer_setvolume(information.audioPlayer.volume + 1);
+    if(information.audioPlayer.volume < 100) audioplayer_setvolume(information.audioPlayer.volume + 3);
   }
 
   if (flags.frontPanel.encoder2TurnLeft)
@@ -584,9 +526,9 @@ void loop()
   {
     flags.frontPanel.buttonAnyPressed = false;
     
-    log_debug("ANY button");
+    //log_debug("ANY button");
     
-    draw_menu();
+    display_draw_menu();
 
     // Restart the ticker
     ticker_userinput_ref.stop();

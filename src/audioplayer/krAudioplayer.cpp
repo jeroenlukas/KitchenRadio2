@@ -41,16 +41,21 @@ void audioplayer_init()
 
 void audioplayer_setvolume(uint8_t volume)
 {
-    volume = constrain(volume, 0, 100);
+    volume = constrain(volume, 1, 100);
     information.audioPlayer.volume = volume;
     
-    player.setVolume(log(information.audioPlayer.volume + 1) / log(127) * 100);    
+    // Convert to logarithmic scale
+    uint8_t vol_log = 2.5 * 20 * log10(information.audioPlayer.volume);
+
+    log_debug("Set vol_log: " + String(vol_log));
+    
+    player.setVolume(vol_log);
 }
 
 void audioplayer_set_soundmode(uint8_t soundMode)
 {
-    //front_led_off(LED_WEBRADIO);
-    //front_led_off(LED_BLUETOOTH);
+    front_led_off(MCP_LED_WEBRADIO);
+    front_led_off(MCP_LED_BLUETOOTH);
 
     // Current soundmode
     switch(audioplayer_soundMode)
@@ -78,7 +83,7 @@ void audioplayer_set_soundmode(uint8_t soundMode)
 
         case SOUNDMODE_WEBRADIO:
             webradio_open_station(0);
-            //front_led_on(LED_WEBRADIO);
+            front_led_on(MCP_LED_WEBRADIO);
             log_debug("Radio mode");
             break;
 

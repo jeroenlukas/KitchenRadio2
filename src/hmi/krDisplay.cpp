@@ -21,16 +21,37 @@ int menuitem = 0;
 String mitem_lamp_state_desc[2] = {"off", "on"};
 String mitem_lamp_effecttype_desc[2] = {"off", "color fade"};
 
-void draw_menu_footer(uint16_t mitem_min, uint16_t mitem_max);
-void draw_menu_home();
-void draw_menu_lamp();
-void draw_menu_system();
+void display_draw_menu();
+void display_draw_menu_footer(uint16_t mitem_min, uint16_t mitem_max);
+void display_draw_menu_home();
+void display_draw_menu_lamp();
+void display_draw_menu_system();
+void display_set_brightness(uint8_t brightness);
+void display_set_brightness_auto();
+
 
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
 
+void display_set_brightness(uint8_t brightness)
+{
+  // Contrast (0-100)
+  uint8_t contrast = map(brightness, 0, 100, 0, 50);
+  u8g2.setContrast(contrast);
 
+  // Pre charge voltage (0-31) 0 is 0ff
+  uint8_t pcv = map(brightness, 0, 100, 0, 31);
 
-void draw_menu()
+  u8g2.sendF("ca", 0xBB, pcv);  
+}
+
+void display_set_brightness_auto()
+{
+  uint8_t brightness = map(information.system.ldr, 0, 100, CONF_DISPLAY_AUTO_BRIGHTNESS_MIN, CONF_DISPLAY_AUTO_BRIGHTNESS_MAX);
+  display_set_brightness(brightness);
+  //log_debug("Setting birghtness to " + String(brightness));
+}
+
+void display_draw_menu()
 {
 
 
@@ -41,15 +62,15 @@ void draw_menu()
       switch(menu)
       {
         case MENU_HOME:        
-          draw_menu_home();          
+          display_draw_menu_home();          
           break; 
 
         case MENU_LAMP:        
-          draw_menu_lamp();
+          display_draw_menu_lamp();
           break;
 
         case MENU_SYSTEM:
-          draw_menu_system();
+          display_draw_menu_system();
           break;
 
         default:
@@ -58,7 +79,7 @@ void draw_menu()
     } while ( u8g2.nextPage() );
 }
 
-void draw_menu_home()
+void display_draw_menu_home()
 {
     if(settings["homedisplay"] == "debug")
           {
@@ -155,7 +176,7 @@ void draw_menu_home()
           log_debug_draw();
 }
 
-void draw_menu_footer(uint16_t mitem_min, uint16_t mitem_max)
+void display_draw_menu_footer(uint16_t mitem_min, uint16_t mitem_max)
 {
   u8g2.drawLine(0, 48, 256, 48);
 
@@ -169,9 +190,9 @@ void draw_menu_footer(uint16_t mitem_min, uint16_t mitem_max)
     u8g2.drawGlyph(146, 62, 9660); // Down
 }
 
-void draw_menu_lamp()
+void display_draw_menu_lamp()
 {
-  draw_menu_footer(MITEM_LAMP_MIN, MITEM_LAMP_MAX);
+  display_draw_menu_footer(MITEM_LAMP_MIN, MITEM_LAMP_MAX);
 
   u8g2.setFont(FONT_M);
   u8g2.drawStr(10, 10, "Lamp");
@@ -209,9 +230,9 @@ void draw_menu_lamp()
   }
 }
 
-void draw_menu_system()
+void display_draw_menu_system()
 {
-  draw_menu_footer(MITEM_SYSTEM_MIN, MITEM_SYSTEM_MAX);
+  display_draw_menu_footer(MITEM_SYSTEM_MIN, MITEM_SYSTEM_MAX);
 
   u8g2.setFont(FONT_M);
   u8g2.drawStr(10, 10, "System");

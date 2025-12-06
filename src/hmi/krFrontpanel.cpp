@@ -10,6 +10,7 @@
 #include "information/krInfo.h"
 #include "flags.h"
 
+
 // To calibrate button ADC values
 //#define CAL_BUTTONS
 
@@ -30,9 +31,7 @@ Adafruit_MCP23X17 mcp;
 RotaryEncoder encoder1(ROTARY1_A, ROTARY1_B, RotaryEncoder::LatchMode::FOUR3);
 RotaryEncoder encoder2(ROTARY2_A, ROTARY2_B, RotaryEncoder::LatchMode::FOUR3);
 
-
-
-
+uint32_t lastpressdown = 0;
 
 
 void front_init()
@@ -72,11 +71,12 @@ void front_init()
     mcp.setupInterruptPin(MCP_BTN_OFF, CHANGE);
     mcp.setupInterruptPin(MCP_BTN_WEBRADIO, CHANGE);
     //mcp.setupInterruptPin(MCP_BTN_BLUETOOTH, CHANGE);
-    //mcp.setupInterruptPin(MCP_BTN_SYSTEM, CHANGE);
+    mcp.setupInterruptPin(MCP_BTN_SYSTEM, CHANGE);
     //mcp.setupInterruptPin(MCP_BTN_ALARM, CHANGE);
     //mcp.setupInterruptPin(MCP_BTN_LAMP, CHANGE);
     mcp.setupInterruptPin(MCP_BTN_ENC1, CHANGE);
     mcp.setupInterruptPin(MCP_BTN_ENC2, CHANGE);
+    mcp.clearInterrupts();
 
     // LEDs
     mcp.pinMode(MCP_LED_WEBRADIO, OUTPUT);
@@ -86,17 +86,17 @@ void front_init()
     mcp.digitalWrite(MCP_LED_WEBRADIO, HIGH);    
     mcp.digitalWrite(MCP_LED_BLUETOOTH, HIGH);
     
-    mcp.clearInterrupts();
+    
 }
 
 void front_led_on(uint8_t led)
 {
-    digitalWrite(led, 1);
+    mcp.digitalWrite(led, 1);
 }
 
 void front_led_off(uint8_t led)
 {
-    digitalWrite(led, 0);
+    mcp.digitalWrite(led, 0);
 }
 
 
@@ -117,14 +117,13 @@ void front_encoders_read()
         if ((int)(encoder1.getDirection()) == -1)
         {
             flags.frontPanel.encoder1TurnRight = true;
-            flags.frontPanel.buttonAnyPressed = true;
         }
         else
         {
             flags.frontPanel.encoder1TurnLeft = true;            
-            flags.frontPanel.buttonAnyPressed = true;
         }
         pos1 = newPos1;
+        flags.frontPanel.buttonAnyPressed = true;
     }
 
     static int pos2 = 0;
@@ -136,30 +135,87 @@ void front_encoders_read()
         if ((int)(encoder2.getDirection()) == 1)
         {
             flags.frontPanel.encoder2TurnRight = true;
-            flags.frontPanel.buttonAnyPressed = true;
         }
         else
         {
             flags.frontPanel.encoder2TurnLeft = true;           
-            flags.frontPanel.buttonAnyPressed = true;
         }
+        flags.frontPanel.buttonAnyPressed = true;
         pos2 = newPos2;
     }
 }
 
 void front_buttons_read()
 {
-    static bool mcp_inta_prev;
+    //static bool mcp_inta_prev;
+    static uint8_t lastbutton = 0xFF;
 
     int mcp_inta = !digitalRead(MCP_INTA); // Interrupt for encoder switches
     int mcp_intb = !digitalRead(MCP_INTB); // Interrupt
     
+    // Handle long press stuff
+    /*if(lastpressdown > 0)
+    {
+        if((millis() - lastpressdown) > 1000)
+        {
+             Serial.println("LONG press " + String(lastbutton));
+             lastpressdown = 0;
+             //return;
+        }
+    }*/
+
     if(mcp_inta || mcp_intb)
     {
-        Serial.println();
-       Serial.print("Interrupt detected on pin: ");
-        Serial.println(mcp.getLastInterruptPin());
         
+        uint8_t button = mcp.getLastInterruptPin();
+        // Value: 1 = pressed
+        uint16_t value = !((mcp.getCapturedInterrupt() >> button) & 1);
+        Serial.println("Btn: " + String(button) + " Value: " + String(value));
+
+
+
+        if(button == lastbutton) 
+        {
+            if(!value) // button was released
+            {
+                /*if((millis() - lastpressdown) > 1000)
+                {
+                    //Serial.println("LONG press");
+                }*/
+                Serial.println("Short press " + String(button));
+                lastpressdown = 0; // 'reset' 
+
+                switch(button)
+                {
+                    case MCP_BTN_OFF:
+                        flags.frontPanel.buttonOffPressed = true;
+                        break;
+                    case MCP_BTN_WEBRADIO:
+                        flags.frontPanel.buttonRadioPressed = true;
+                        break;
+                    case MCP_BTN_SYSTEM:
+                        flags.frontPanel.buttonSystemPressed = true;
+                    default:
+                        break;
+
+                }
+            }
+            /*else
+            {
+                lastbutton = button;
+                lastpressdown = millis(); // button is pushed
+            }*/
+        }
+        else
+        {
+            //Serial.println("* Invalid!");
+        }
+
+        
+        
+        lastbutton = button;
+        
+
         //Serial.print("Pin states at time of interrupt: 0b");
         //Serial.println(mcp.getCapturedInterrupt(), 2);
         //delay(10);  // debounce
@@ -167,6 +223,8 @@ void front_buttons_read()
         // condition does not exist.
         // See Fig 1-7 in datasheet.
         mcp.clearInterrupts();  // clear
+
+        flags.frontPanel.buttonAnyPressed = true;
     }
 
 
@@ -176,10 +234,6 @@ void front_buttons_read()
 void front_handle(void)
 {
     front_encoders_read();
-
-    //front_buttons_read();
-
-    //front_ldr_read();
 }
 
 // Helper function to ping I2C devices

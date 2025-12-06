@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 
-void cli_init();
-void cli_parse(String input);
+extern void cli_init();
+extern void cli_parse(String input);
+extern void cli_handle();
 
 #endif

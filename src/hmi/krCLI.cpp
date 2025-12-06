@@ -30,6 +30,8 @@ Command cmd_cat;
 Command cmd_fake;
 Command cmd_oled;
 
+void cli_handle();
+
 void cb_reset(cmd* c) 
 {
     Command cmd(c);
@@ -116,7 +118,15 @@ void cb_fake(cmd* c)
 void cb_oled(cmd* c) 
 {
     Command cmd(c);
-    if(cmd.getArgument("contrast").isSet())
+
+    if(cmd.getArgument("brightness").isSet())
+    {
+        int val = cmd.getArgument("brightness").getValue().toInt();
+        log_debug("[OLED] Set brightness to " + String(val) + "%");
+        display_set_brightness(val);
+    }
+
+    else if(cmd.getArgument("contrast").isSet())
     {
         int val = cmd.getArgument("contrast").getValue().toInt();
         log_debug("[OLED] Set contast to " + String(val));
@@ -285,6 +295,7 @@ void cli_init(void)
 
     // > oled
     cmd_oled = kr_cli.addCmd("oled", cb_oled);
+    cmd_oled.addArgument("b/rightness", "100");
     cmd_oled.addArgument("c/ontrast", "100");
     cmd_oled.addFlagArgument("on");
     cmd_oled.addFlagArgument("off");
@@ -305,4 +316,30 @@ void cli_init(void)
 void cli_parse(String input)
 {
     kr_cli.parse(input);
+}
+
+void cli_handle()
+{
+    if (Serial.available()) 
+    {
+        static char commandbuffer[100] = "";
+        static uint8_t commandbuffer_idx = 0;
+
+        char inp = Serial.read();
+        Serial.print('\r');
+        //Serial.print((char)inp);
+        
+        commandbuffer[commandbuffer_idx] = inp;
+        commandbuffer_idx ++;
+        commandbuffer[commandbuffer_idx] = '\0';
+
+        Serial.print(commandbuffer);
+
+        if(inp == '\n')
+        {        
+            String commandstr = String(commandbuffer);
+            cli_parse(commandstr);
+            commandbuffer_idx = 0;
+        }
+    }
 }

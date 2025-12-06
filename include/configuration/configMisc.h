@@ -3,22 +3,21 @@
 
 #define FORMAT_LITTLEFS_IF_FAILED true
 
-// Volume pot hysteresis
-#define POT_HYSTERESIS          20
-#define POT_MA_SIZE             10
-
 // Circular buffer size in PSRAM
 #define CIRCBUFFER_SIZE         2 * 1024 * 1024 // 2 MB
 
 // Minimum no. of bytes required in circular buffer to play
 #define CONF_AUDIO_MIN_BYTES    256 * 1024
 
-//#define DISPLAY_RETURN_TIME     20 //*100 ms
-
+// Return to home screen after this many ms of no user input
 #define CONF_MENU_RETURN_HOME_MS    10000
 
+// Maps LDR brightness to the display brightness
+#define CONF_DISPLAY_AUTO_BRIGHTNESS_MIN    10
+#define CONF_DISPLAY_AUTO_BRIGHTNESS_MAX    80
+
 // Multibutton ranges
-#define BTN_ADC_OFF_MIN         3400
+/*#define BTN_ADC_OFF_MIN         3400
 #define BTN_ADC_OFF_MAX         3600
 #define BTN_ADC_RADIO_MIN       2700
 #define BTN_ADC_RADIO_MAX       2900
@@ -29,7 +28,7 @@
 #define BTN_ADC_ALARM_MIN       1600
 #define BTN_ADC_ALARM_MAX       1730
 #define BTN_ADC_LAMP_MIN        1050
-#define BTN_ADC_LAMP_MAX        1150
+#define BTN_ADC_LAMP_MAX        1150*/
 
 // Boot Log - note: these values are not pixels but the number of characters!
 #define LOG_BOOT_WIDTH          40
