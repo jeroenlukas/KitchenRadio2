@@ -13,22 +13,8 @@
 #define CONF_MENU_RETURN_HOME_MS    10000
 
 // Maps LDR brightness to the display brightness
-#define CONF_DISPLAY_AUTO_BRIGHTNESS_MIN    10
+#define CONF_DISPLAY_AUTO_BRIGHTNESS_MIN    15
 #define CONF_DISPLAY_AUTO_BRIGHTNESS_MAX    80
-
-// Multibutton ranges
-/*#define BTN_ADC_OFF_MIN         3400
-#define BTN_ADC_OFF_MAX         3600
-#define BTN_ADC_RADIO_MIN       2700
-#define BTN_ADC_RADIO_MAX       2900
-#define BTN_ADC_BLUETOOTH_MIN   2150
-#define BTN_ADC_BLUETOOTH_MAX   2320
-#define BTN_ADC_SYSTEM_MIN      500
-#define BTN_ADC_SYSTEM_MAX      600
-#define BTN_ADC_ALARM_MIN       1600
-#define BTN_ADC_ALARM_MAX       1730
-#define BTN_ADC_LAMP_MIN        1050
-#define BTN_ADC_LAMP_MAX        1150*/
 
 // Boot Log - note: these values are not pixels but the number of characters!
 #define LOG_BOOT_WIDTH          40
