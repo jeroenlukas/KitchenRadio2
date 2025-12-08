@@ -22,9 +22,15 @@ cbuf_ps circBuffer(1024);
 
 char readBuffer[4096] __attribute__((aligned(4)));
 
+void audioplayer_set_mute(bool mute)
+{
+    digitalWrite(PIN_PA_MUTE, !mute);
+}
+
 void audioplayer_init()
 {
-    //u8g2log.print("Starting codec...\n");
+    pinMode(PIN_PA_MUTE, OUTPUT);
+    
     player.begin();
     if(player.isChipConnected())
     {
@@ -37,6 +43,8 @@ void audioplayer_init()
     player.loadDefaultVs1053Patches();
     player.switchToMp3Mode(); // optional, some boards require this
     player.setVolume(80);
+
+    audioplayer_set_mute(true);
 }
 
 void audioplayer_setvolume(uint8_t volume)
@@ -79,12 +87,14 @@ void audioplayer_set_soundmode(uint8_t soundMode)
     {
         case SOUNDMODE_OFF:
             log_debug("Sound off");
+            audioplayer_set_mute(true);
             break;
 
         case SOUNDMODE_WEBRADIO:
             webradio_open_station(0);
             front_led_on(MCP_LED_WEBRADIO);
             log_debug("Radio mode");
+            audioplayer_set_mute(false);
             break;
 
         case SOUNDMODE_BLUETOOTH:
@@ -111,6 +121,7 @@ void audioplayer_set_soundmode(uint8_t soundMode)
             player.setVolume(100);
             sci_mode = player.read_register(0x00);
             Serial.println("new sci_mode: " + String(sci_mode));
+            audioplayer_set_mute(false);
             break;
     }
 

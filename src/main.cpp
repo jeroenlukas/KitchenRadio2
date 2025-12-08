@@ -111,30 +111,38 @@ void setup()
   log_boot("==== KitchenRadio2! ====");
   log_boot("Firmware version: " + String(KR_VERSION));
 
+  delay(100);
+  
+  // ESP info
+  log_boot("Chip model: " + String(ESP.getChipModel()) + " rev " + String(ESP.getChipRevision()));
+  log_boot("CPU freq: " + String(ESP.getCpuFreqMHz()) + " MHz");
+  log_boot("Total heap: " + String(ESP.getHeapSize()) + " bytes");
+  log_boot("Free heap: " + String(ESP.getFreeHeap()) + " bytes");
+  log_boot("PSRAM size: " + String(ESP.getPsramSize()) + " bytes");
+  delay(300);
+    
   // Littlefs
   if(!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)){
       Serial.println("LittleFS Mount Failed");
-      return;
+      while(1);
   }
   else
   {
     log_boot("LittleFS mounted");
   }
 
+   // Should be moved to top
+  log_boot("Loading settings");
+  settings_read_config();
+  const char * deviceName = settings["deviceName"];
+  log_boot("Device name: " + String(deviceName));
+  const char * location = settings["location"];
+  log_boot("Location: " + String(location));
 
   kcx_init();
 
   audioplayer_set_soundmode(SOUNDMODE_OFF);
  
-  delay(300);
-  // ESP info
-  log_boot("Total heap: " + String(ESP.getHeapSize()) + " bytes");
-  log_boot("Free heap: " + String(ESP.getFreeHeap()) + " bytes");
-  log_boot("PSRAM size: " + String(ESP.getPsramSize()) + " bytes");
-  delay(300);
-  log_boot("CPU freq: " + String(ESP.getCpuFreqMHz()) + " MHz");
-  log_boot("Chip model: " + String(ESP.getChipModel()) + " rev " + String(ESP.getChipRevision()));
-  delay(300);
 
 
   information.webRadio.station_count = webradio_get_num_stations();
@@ -154,7 +162,6 @@ void setup()
   
   while (WiFi.status() != WL_CONNECTED)
   {
-    //  u8g2log.print(".");
       Serial.print('.');
       delay(500);
   }
@@ -169,13 +176,7 @@ void setup()
   log_boot("Init led ring");
   lamp_init();
 
-  // Should be moved to top
-  log_boot("Loading settings");
-  settings_read_config();
-  const char * deviceName = settings["deviceName"];
-  log_boot("Device name: " + String(deviceName));
-  const char * location = settings["location"];
-  log_boot("Location: " + String(location));
+ 
   
   // Time 
   time_init();
@@ -222,8 +223,7 @@ void setup()
   ticker_1000ms_ref.attach(1.0, ticker_1000ms);
   ticker_30min_ref.attach(1.0 * 1800, ticker_30min);
   ticker_1min_ref.attach(1.0 * 60, ticker_1min);  
-  ticker_userinput_ref.start();
-  
+  ticker_userinput_ref.start();  
 
   audioplayer_setvolume(50);
 
@@ -323,17 +323,13 @@ void loop()
           audioplayer_set_soundmode(SOUNDMODE_WEBRADIO);
           break;
         case MENU_LAMP:
-          // up
-          if(menuitem > MITEM_LAMP_MIN) menuitem--;
           break;
         case MENU_SYSTEM:
-          if(menuitem > MITEM_SYSTEM_MIN) menuitem--;
           break;
       }
       
   }
 
-  // Doubles as DOWN
   if(flags.frontPanel.buttonBluetoothPressed)
   {
     flags.frontPanel.buttonBluetoothPressed = false;
@@ -344,14 +340,10 @@ void loop()
         audioplayer_set_soundmode(SOUNDMODE_BLUETOOTH);
         break;
       case MENU_LAMP:
-        // down
-        if(menuitem < MITEM_LAMP_MAX) menuitem++;
         break;
       case MENU_SYSTEM:
-        if(menuitem < MITEM_SYSTEM_MAX) menuitem++;
         break;
-    }
-    
+    }    
   }
 
   if(flags.frontPanel.buttonSystemPressed)
@@ -373,8 +365,6 @@ void loop()
     flags.frontPanel.buttonLampPressed = false;
     menu = MENU_LAMP;
     menuitem = MITEM_LAMP_STATE;
-    //lamp_toggle();
-
   }
 
   if(flags.frontPanel.buttonLampLongPressed)
@@ -395,31 +385,14 @@ void loop()
     }
   }
 
+  // 'Volume' encoder. For volume and value setting
   if(flags.frontPanel.encoder1TurnLeft)
   {
     flags.frontPanel.encoder1TurnLeft = false;
-    if(information.audioPlayer.volume > 3) audioplayer_setvolume(information.audioPlayer.volume - 3);
-  }
-  if(flags.frontPanel.encoder1TurnRight)
-  {
-    flags.frontPanel.encoder1TurnRight = false;
-    if(information.audioPlayer.volume < 100) audioplayer_setvolume(information.audioPlayer.volume + 3);
-  }
-
-  if (flags.frontPanel.encoder2TurnLeft)
-  {
-    flags.frontPanel.encoder2TurnLeft = false;
-
-    switch(menu)
+    switch (menu)
     {
       case MENU_HOME:
-        if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
-        {
-          if(information.webRadio.station_index > 0)
-          {
-            webradio_open_station(information.webRadio.station_index - 1);
-          }
-        }
+        if(information.audioPlayer.volume > 3) audioplayer_setvolume(information.audioPlayer.volume - 3);
         break;
       case MENU_LAMP:
         switch(menuitem)
@@ -448,18 +421,101 @@ void loop()
             break;
         }
         break;
-      case MENU_SYSTEM:
+
+        case MENU_SYSTEM:
+          switch(menuitem)
+          {
+            case MITEM_SYSTEM_BASS:
+              audioplayer_setbass(information.audioPlayer.bass - 1);
+              break;
+            case MITEM_SYSTEM_TREBLE:
+              audioplayer_settreble(information.audioPlayer.treble - 1);
+              break;
+            default:
+              break;
+          }
+          break;
+      default:
+        break;
+    }    
+  }
+
+if(flags.frontPanel.encoder1TurnRight)
+  {
+    flags.frontPanel.encoder1TurnRight = false;
+    switch (menu)
+    {
+      case MENU_HOME:
+        if(information.audioPlayer.volume < 100) audioplayer_setvolume(information.audioPlayer.volume + 3);
+        break;
+      case MENU_LAMP:
         switch(menuitem)
         {
-          case MITEM_SYSTEM_BASS:
-            audioplayer_setbass(information.audioPlayer.bass - 1);
+          case MITEM_LAMP_STATE:
+            //if(information.lamp.state)
+              lamp_toggle();
             break;
-          case MITEM_SYSTEM_TREBLE:
-            audioplayer_settreble(information.audioPlayer.treble - 1);
+          case MITEM_LAMP_HUE:
+            lamp_sethue(information.lamp.hue + 0.01);
             break;
-          default:
+          case MITEM_LAMP_SATURATION:
+            lamp_setsaturation(information.lamp.saturation + 0.02);
+            break;
+          case MITEM_LAMP_LIGHTNESS:
+            lamp_setlightness(information.lamp.lightness + 0.02);
+            break;
+          case MITEM_LAMP_EFFECTTYPE:
+            if(information.lamp.effect_type < LAMP_EFFECT_MAX)
+            {
+              lamp_seteffecttype(information.lamp.effect_type + 1); 
+            }
+            break;
+          case MITEM_LAMP_EFFECTSPEED:
+            lamp_seteffectspeed(information.lamp.effect_speed + 0.0001);
             break;
         }
+        break;
+
+        case MENU_SYSTEM:
+          switch(menuitem)
+          {
+            case MITEM_SYSTEM_BASS:
+              audioplayer_setbass(information.audioPlayer.bass + 1);
+              break;
+            case MITEM_SYSTEM_TREBLE:
+              audioplayer_settreble(information.audioPlayer.treble + 1);
+              break;
+            default:
+              break;
+          }
+          break;
+      default:
+        break;
+    }    
+  }
+
+  // 'Tune' encoder. For radio station selection and setting selection
+  if (flags.frontPanel.encoder2TurnLeft)
+  {
+    flags.frontPanel.encoder2TurnLeft = false;
+
+    switch(menu)
+    {
+      case MENU_HOME:
+        if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+        {
+          if(information.webRadio.station_index > 0)
+          {
+            webradio_open_station(information.webRadio.station_index - 1);
+          }
+        }
+        break;
+      case MENU_LAMP:
+        if(menuitem > MITEM_LAMP_MIN) menuitem--;
+        break;
+      case MENU_SYSTEM:
+        if(menuitem > MITEM_SYSTEM_MIN) menuitem--;
+        break;
     }
   }
 
@@ -479,44 +535,11 @@ void loop()
         }
         break;
       case MENU_LAMP:
-        switch(menuitem)
-        {
-          case MITEM_LAMP_STATE:
-            if(!information.lamp.state)
-              lamp_toggle();
-            break;
-          case MITEM_LAMP_HUE:
-            lamp_sethue(information.lamp.hue + 0.01);
-            break;
-          case MITEM_LAMP_SATURATION:
-            lamp_setsaturation(information.lamp.saturation + 0.02);
-            break;
-          case MITEM_LAMP_LIGHTNESS:
-            lamp_setlightness(information.lamp.lightness + 0.02);
-            break;
-          case MITEM_LAMP_EFFECTTYPE:
-            if(information.lamp.effect_type < LAMP_EFFECT_MAX)
-            {
-              lamp_seteffecttype(information.lamp.effect_type + 1);
-            }   
-            break;
-          case MITEM_LAMP_EFFECTSPEED:
-            lamp_seteffectspeed(information.lamp.effect_speed + 0.0001);
-            break;
-        }
+        if(menuitem < MITEM_LAMP_MAX) menuitem++;
         break;
       case MENU_SYSTEM:
-        switch(menuitem)
-        {
-          case MITEM_SYSTEM_BASS:
-            audioplayer_setbass(information.audioPlayer.bass + 1);
-            break;
-          case MITEM_SYSTEM_TREBLE:
-            audioplayer_settreble(information.audioPlayer.treble + 1);
-            break;
-          default:
-            break;
-        }
+        if(menuitem < MITEM_SYSTEM_MAX) menuitem++;        
+        break;
     }
     
   }

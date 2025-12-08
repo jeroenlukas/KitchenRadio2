@@ -67,6 +67,9 @@
 // LED ring
 #define PIN_LED_RING    38
 
+// Power amp
+#define PIN_PA_MUTE     40
+
 #endif
 
 #ifdef KR_REV0
