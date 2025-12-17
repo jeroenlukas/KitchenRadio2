@@ -46,7 +46,17 @@ void display_set_brightness(uint8_t brightness)
 
 void display_set_brightness_auto()
 {
-  uint8_t brightness = map(information.system.ldr, 0, 100, CONF_DISPLAY_AUTO_BRIGHTNESS_MIN, CONF_DISPLAY_AUTO_BRIGHTNESS_MAX);
+  //uint8_t brightness = map(information.system.ldr, 0, 100, CONF_DISPLAY_AUTO_BRIGHTNESS_MIN, CONF_DISPLAY_AUTO_BRIGHTNESS_MAX);
+  
+  int br_max = int(settings["oled"]["brightness_max"]);
+  int br_min = int(settings["oled"]["brightness_min"]);
+
+  if(br_max == 0) br_max = 100;
+
+  
+
+  uint8_t brightness = map(information.system.ldr, 0, 100, br_min, br_max);
+  
   display_set_brightness(brightness);
   //log_debug("Setting birghtness to " + String(brightness));
 }

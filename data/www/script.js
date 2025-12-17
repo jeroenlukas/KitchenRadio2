@@ -23,6 +23,11 @@ function getValuesSystem()
     websocket.send("getValuesSystem");
 }
 
+function getValuesConfig()
+{
+    websocket.send("getValuesConfig");
+}
+
 function initWebSocket() {
     console.log('Trying to open a WebSocket connection…');
     websocket = new WebSocket(gateway);
@@ -46,6 +51,11 @@ function onOpen(event) {
     {
         // Settings
         let interval = setInterval(() => getValuesSystem(), 1000);
+    }
+    else if(window.location.pathname == "/config")
+    {
+        // Config (once)
+        getValuesConfig();
     }
 
     

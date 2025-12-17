@@ -8,6 +8,7 @@
 #include "flags.h"
 #include "hmi/krLamp.h"
 #include "hmi/krCLI.h"
+#include "logger.h"
 
 // https://randomnerdtutorials.com/esp32-websocket-server-sensor/
 
@@ -74,6 +75,36 @@ void sendValuesWeather()
   ws.textAll(jsonString);
 }
 
+void sendValuesConfig()
+{
+  String jsonString;
+  DynamicJsonDocument doc(1024);
+
+  // Get content from config file
+  File file_cat = LittleFS.open("/settings/settings.json", "r");
+
+  if(!file_cat)
+  {
+      Serial.print("Error: could not open file ");
+      return;
+  }
+
+  String file_content;
+
+  while(file_cat.available())
+  {
+      String data = file_cat.readString();
+      file_content += data;      
+  }
+
+  file_cat.close();
+
+  doc["config_content"] = file_content;
+
+  serializeJson(doc, jsonString);
+  ws.textAll(jsonString);
+}
+
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
@@ -105,13 +136,16 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       {
         sendValuesWeather();
       }
+      else if(message == "getValuesConfig")
+      {
+        sendValuesConfig();
+      }
       else if(message.startsWith("{\"ledring"))
       {
         DynamicJsonDocument doc(1024);
 
         deserializeJson(doc, message);
 
-        //lamp_setcolor(doc["ledring"]["r"],doc["ledring"]["g"],doc["ledring"]["b"],255);
         lamp_sethue(doc["ledring"]["h"]);
         lamp_setsaturation(doc["ledring"]["s"]);
         lamp_setlightness(doc["ledring"]["v"]);
@@ -175,13 +209,46 @@ void webserver_init() {
   server.addHandler(&ws);
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    //request->send(LittleFS, "/www/index.html", "text/html");
     request->send(200, "text/html", buildHtmlPage("index.html"));
   });
 
   server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
-    //request->send(LittleFS, "/www/index.html", "text/html");
     request->send(200, "text/html", buildHtmlPage("settings.html"));
+  });
+
+  server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(200, "text/html", buildHtmlPage("config.html"));
+  });
+/*
+  server.on("/config", HTTP_POST, [](AsyncWebServerRequest *request) {
+    AsyncWebParameter* p = request->getParam("config_content", true, false);
+    Serial.printf("POST %s", p->value().c_str());
+  });*/
+  server.on("/config", HTTP_POST, [](AsyncWebServerRequest *request) {
+    // display params
+    size_t count = request->params();
+    for (size_t i = 0; i < count; i++) {
+      const AsyncWebParameter *p = request->getParam(i);
+      Serial.printf("PARAM[%u]: %s = %s\n", i, p->name().c_str(), p->value().c_str());
+    }
+
+    // get who param
+    String new_content;
+    if (request->hasParam("config_content", true)) {
+      new_content = request->getParam("config_content", true)->value();
+
+      // Write to settings.json
+      File file = LittleFS.open("/settings/settings.json", "w");
+      if(file.print(new_content))
+      {
+        log_debug("Settings saved");
+      }
+      else log_debug("ERROR in saving settings");
+
+      // Return to config file
+      request->send(200, "text/html", buildHtmlPage("config.html"));
+    }
+    
   });
 
 

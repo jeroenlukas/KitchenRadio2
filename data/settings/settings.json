@@ -15,5 +15,10 @@
             "bassFreq": 15
         }
     },
-    "homedisplay": "normal"
+    "homedisplay": "normal",
+    "oled":
+    {
+        "brightness_min": 1,
+        "brightness_max": 80
+    }
 }

@@ -91,7 +91,8 @@ void front_init()
 
 void front_led_on(uint8_t led)
 {
-    mcp.digitalWrite(led, 1);
+    if(information.system.ldr > CONF_LEDS_NIGHT_MODE) // TODO 
+        mcp.digitalWrite(led, 1);    
 }
 
 void front_led_off(uint8_t led)
