@@ -48,8 +48,8 @@ void display_set_brightness_auto()
 {
   //uint8_t brightness = map(information.system.ldr, 0, 100, CONF_DISPLAY_AUTO_BRIGHTNESS_MIN, CONF_DISPLAY_AUTO_BRIGHTNESS_MAX);
   
-  int br_max = int(settings["oled"]["brightness_max"]);
-  int br_min = int(settings["oled"]["brightness_min"]);
+  int br_max = int(settings["display"]["brightness_max"]);
+  int br_min = int(settings["display"]["brightness_min"]);
 
   if(br_max == 0) br_max = 100;
 
@@ -91,7 +91,7 @@ void display_draw_menu()
 
 void display_draw_menu_home()
 {
-    if(settings["homedisplay"] == "debug")
+    if(settings["display"]["homedisplay"] == "debug")
           {
             u8g2.setFont(FONT_S);
             u8g2.drawStr(3, 6, (information.weather.stateShort).c_str());
@@ -100,7 +100,7 @@ void display_draw_menu_home()
             u8g2.drawStr(3, 30, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
             u8g2.drawStr(3, 38, ("Buf: " + String(circBuffer.available()) + " B").c_str());
           }
-          else if(settings["homedisplay"] == "normal")
+          else if(settings["display"]["homedisplay"] == "normal")
           {
             u8g2.setFont(u8g2_font_climacons_40);
             int weatherglyph = 0;

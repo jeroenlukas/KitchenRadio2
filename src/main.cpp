@@ -133,8 +133,10 @@ void setup()
 
    // Should be moved to top
   log_boot("Loading settings");
-  settings_read_config();
-  const char * deviceName = settings["deviceName"];
+  //settings_read_config();
+  config_read();
+
+  const char * deviceName = settings["devicename"];
   log_boot("Device name: " + String(deviceName));
   const char * location = settings["location"];
   log_boot("Location: " + String(location));
@@ -143,8 +145,6 @@ void setup()
 
   audioplayer_set_soundmode(SOUNDMODE_OFF);
  
-
-
   information.webRadio.station_count = webradio_get_num_stations();
   log_boot("Stations: " + String( information.webRadio.station_count));
   // WiFi setup
@@ -202,8 +202,8 @@ void setup()
   }
 
   // Set tone control
-  audioplayer_setbass(0);
-  audioplayer_settreble(0);
+  audioplayer_setbass(settings["audio"]["tonecontrol"]["bass"]);
+  audioplayer_settreble(settings["audio"]["tonecontrol"]["treble"]);
 
   // Get weather
   weather_retrieve();

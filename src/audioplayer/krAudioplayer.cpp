@@ -176,12 +176,14 @@ void audioplayer_setbass(int8_t bass_gain)
 {
     int gain = constrain(bass_gain, 0, +15);
     information.audioPlayer.bass = gain;
+
+    settings["audio"]["tonecontrol"]["bass"] = gain;
     
     // Change the tonecontrol
     audioplayer_settone(
-        int(settings["audio"]["toneControl"]["bassFreq"]),
+        int(settings["audio"]["tonecontrol"]["bass_freq"]),
         information.audioPlayer.bass,
-        int(settings["audio"]["toneControl"]["trebleFreq"]),
+        int(settings["audio"]["tonecontrol"]["treble_freq"]),
         information.audioPlayer.treble
         );
     
@@ -192,11 +194,14 @@ void audioplayer_settreble(int8_t treble_gain)
 {
     int gain = constrain(treble_gain, -8, +7);
     information.audioPlayer.treble = gain;
+
+    settings["audio"]["tonecontrol"]["treble"] = gain;
+
     // Change the tonecontrol
     audioplayer_settone(
-        int(settings["audio"]["toneControl"]["bassFreq"]),
+        int(settings["audio"]["tonecontrol"]["bass_freq"]),
         information.audioPlayer.bass,
-        int(settings["audio"]["toneControl"]["trebleFreq"]),
+        int(settings["audio"]["tonecontrol"]["treble_freq"]),
         information.audioPlayer.treble
         );
 }

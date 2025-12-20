@@ -9,6 +9,7 @@
 #include "hmi/krLamp.h"
 #include "hmi/krCLI.h"
 #include "logger.h"
+#include "settings/krSettings.h"
 
 // https://randomnerdtutorials.com/esp32-websocket-server-sensor/
 
@@ -81,7 +82,7 @@ void sendValuesConfig()
   DynamicJsonDocument doc(1024);
 
   // Get content from config file
-  File file_cat = LittleFS.open("/settings/settings.json", "r");
+  File file_cat = LittleFS.open("/settings/config.yaml", "r");
 
   if(!file_cat)
   {
@@ -238,12 +239,17 @@ void webserver_init() {
       new_content = request->getParam("config_content", true)->value();
 
       // Write to settings.json
-      File file = LittleFS.open("/settings/settings.json", "w");
+      File file = LittleFS.open("/settings/config.yaml", "w");
       if(file.print(new_content))
       {
         log_debug("Settings saved");
+        file.close();
       }
       else log_debug("ERROR in saving settings");
+
+      // Reload config
+      delayMicroseconds(500000);
+      config_read();
 
       // Return to config file
       request->send(200, "text/html", buildHtmlPage("config.html"));
