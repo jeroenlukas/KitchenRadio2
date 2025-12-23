@@ -1,9 +1,9 @@
 #ifndef CONFIGPINOUT_H
 #define CONFIGPINOUT_H
 
-#define KR_REV1
+#define KR_REV2
 
-#ifdef KR_REV1
+#ifdef KR_REV2
 
 #define HSPI_SCK        12 
 #define HSPI_MISO       13
@@ -68,7 +68,7 @@
 #define PIN_LED_RING    38
 
 // Power amp
-#define PIN_PA_MUTE     40
+#define PIN_PA_MUTE     39
 
 #endif
 
