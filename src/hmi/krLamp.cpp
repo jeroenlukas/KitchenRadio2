@@ -5,6 +5,7 @@
 #include "configuration/config.h"
 #include "logger.h"
 #include "information/krInfo.h"
+#include "hmi/krFrontpanel.h"
 
 const uint16_t PixelCount = LED_RING_NUM_LEDS; // this example assumes 4 pixels, making it smaller will cause a failure
 const uint8_t PixelPin = PIN_LED_RING;  // make sure to set this to the correct pin, ignored for Esp8266
@@ -68,7 +69,9 @@ void lamp_update()
     }
     strip.Show();
 
-    //digitalWrite(LED_LAMP, information.lamp.state);
+    if(information.lamp.state == true)
+        front_led_on(MCP_LED_LAMP);
+    else front_led_off(MCP_LED_LAMP);
 }
 
 void lamp_toggle()

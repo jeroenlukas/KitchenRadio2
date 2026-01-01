@@ -70,6 +70,14 @@
 // Power amp
 #define PIN_PA_MUTE     39
 
+// Buzzer
+#define PIN_BUZZER      18
+
+// I2S
+#define PIN_SLAVEI2S_SCK     42
+#define PIN_SLAVEI2S_SD      41
+#define PIN_SLAVEI2S_WS      40
+
 #endif
 
 #ifdef KR_REV0

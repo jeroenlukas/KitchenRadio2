@@ -13,6 +13,7 @@
 #include "logger.h"
 #include "hmi/krLamp.h"
 #include "hmi/krDisplay.h"
+#include "hmi/krBuzzer.h"
 
 #include <SimpleCLI.h>
 
@@ -29,6 +30,7 @@ Command cmd_effect;
 Command cmd_cat;
 Command cmd_fake;
 Command cmd_oled;
+Command cmd_buzzer;
 
 void cli_handle();
 
@@ -186,9 +188,19 @@ void cb_oled(cmd* c)
 
 }
 
+void cb_buzzer(cmd* c)
+{
+    log_debug("Beep");
+    buzzer_beep(500);
+    
+    return;
+}
+
 void cb_bootlog(cmd* c)
 {
     Serial.print(bootlog);
+
+    return;
 }
 
 void cb_log(cmd* c)
@@ -309,6 +321,9 @@ void cli_init(void)
 
     // > volume
     cmd_volume = kr_cli.addSingleArgCmd("volume", cb_volume);
+
+    // > buzzer
+    cmd_buzzer = kr_cli.addSingleArgCmd("buzzer", cb_buzzer);
 
 
 }

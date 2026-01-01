@@ -9,6 +9,7 @@
 #include "configuration/constants.h"
 #include "settings/krSettings.h"
 #include "audioplayer/kcx.h"
+#include "audioplayer/krI2S.h"
 #include "logger.h"
 #include "flags.h"
 
@@ -76,9 +77,9 @@ void audioplayer_set_soundmode(uint8_t soundMode)
             break;
 
         case SOUNDMODE_BLUETOOTH:
-            kcx_stop();
+           // kcx_stop();
 
-            player.writeRegister(0x0, 0x4804 ); // default + reset
+            //player.writeRegister(0x0, 0x4804 ); // default + reset
             break;
     }
 
@@ -100,18 +101,19 @@ void audioplayer_set_soundmode(uint8_t soundMode)
         case SOUNDMODE_BLUETOOTH:
            // front_led_on(LED_BLUETOOTH);
             log_debug("Bluetooth mode");
-            kcx_start();
+            front_led_on(MCP_LED_BLUETOOTH);
+            //kcx_start();
 
-            delay(10);
+            //delay(10);
             //  Do a soft reset, otherwise the volume will be at a weird setting when switching to Bluetooth
-            player.setVolume(100);
-            player.softReset();
-            delay(300);
+            //player.setVolume(100);
+            //player.softReset();
+            //delay(300);
 
-            uint16_t sci_mode = player.read_register(0x00);
-            Serial.println("sci_mode: " + String(sci_mode));
+            //uint16_t sci_mode = player.read_register(0x00);
+            //Serial.println("sci_mode: " + String(sci_mode));
             
-            player.writeRegister(0xC, 44100);   // aictrl0 samp rate
+           /* player.writeRegister(0xC, 44100);   // aictrl0 samp rate
             player.writeRegister(0xD, 1024);    // aictrl1, gain. controlled by volume pot
             player.writeRegister(0xE, 1024);    // aictrl2 max autogain amp, not used
             player.writeRegister(0xF, 1);       // aictrl3 mode
@@ -120,8 +122,9 @@ void audioplayer_set_soundmode(uint8_t soundMode)
             delay(10);
             player.setVolume(100);
             sci_mode = player.read_register(0x00);
-            Serial.println("new sci_mode: " + String(sci_mode));
+            Serial.println("new sci_mode: " + String(sci_mode));*/
             audioplayer_set_mute(false);
+            slavei2s_sendheader();
             break;
     }
 

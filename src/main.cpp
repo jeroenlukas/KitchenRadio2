@@ -35,6 +35,8 @@
 #include "hmi/krLamp.h"
 #include "hmi/krCLI.h"
 #include "hmi/krDisplay.h"
+#include "hmi/krBuzzer.h"
+#include "audioplayer/krI2S.h"
 
 #include "esp_system.h"
 #include "esp_himem.h"
@@ -144,6 +146,12 @@ void setup()
   kcx_init();
 
   audioplayer_set_soundmode(SOUNDMODE_OFF);
+
+  log_boot("Init buzzer");
+  buzzer_init();
+
+  log_boot("Init I2S");
+  slavei2s_init();
  
   information.webRadio.station_count = webradio_get_num_stations();
   log_boot("Stations: " + String( information.webRadio.station_count));
@@ -255,6 +263,8 @@ void loop()
   webradio_handle_stream();
 
   audioplayer_feedbuffer();
+
+  slavei2s_handle();
 
   cli_handle();
 

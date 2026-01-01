@@ -10,16 +10,6 @@
 #include "information/krInfo.h"
 #include "flags.h"
 
-
-// To calibrate button ADC values
-//#define CAL_BUTTONS
-
-int adc_pot_vol = 0;
-
-int prev_adc_pot_vol = 0;
-
-int front_pot_vol = 0;
-
 bool prev_button_encoder = true;
 
 void front_handle();
@@ -53,9 +43,6 @@ void front_init()
     
     mcp.begin_I2C();    
 
-    //mcp.setupInterrupts(false, true, HIGH);
-    
-
     // Buttons
     mcp.pinMode(MCP_BTN_OFF, INPUT_PULLUP);
     mcp.pinMode(MCP_BTN_WEBRADIO, INPUT_PULLUP);
@@ -67,13 +54,12 @@ void front_init()
     mcp.pinMode(MCP_BTN_ENC2, INPUT_PULLUP);
 
     // Interrupts are disabled by default
-
     mcp.setupInterruptPin(MCP_BTN_OFF, CHANGE);
     mcp.setupInterruptPin(MCP_BTN_WEBRADIO, CHANGE);
-    //mcp.setupInterruptPin(MCP_BTN_BLUETOOTH, CHANGE);
+    mcp.setupInterruptPin(MCP_BTN_BLUETOOTH, CHANGE);
     mcp.setupInterruptPin(MCP_BTN_SYSTEM, CHANGE);
-    //mcp.setupInterruptPin(MCP_BTN_ALARM, CHANGE);
-    //mcp.setupInterruptPin(MCP_BTN_LAMP, CHANGE);
+    mcp.setupInterruptPin(MCP_BTN_ALARM, CHANGE);
+    mcp.setupInterruptPin(MCP_BTN_LAMP, CHANGE);
     mcp.setupInterruptPin(MCP_BTN_ENC1, CHANGE);
     mcp.setupInterruptPin(MCP_BTN_ENC2, CHANGE);
     mcp.clearInterrupts();
@@ -104,7 +90,7 @@ void front_led_off(uint8_t led)
 void front_ldr_read()
 {
     uint16_t adc = 4095 - analogRead(LDR);
-    information.system.ldr = map(adc, 0, 4095, 0, 100);
+    information.system.ldr = map(adc, 0, 4095, 0, 100);    
 }
 
 void front_encoders_read()
@@ -194,8 +180,18 @@ void front_buttons_read()
                     case MCP_BTN_WEBRADIO:
                         flags.frontPanel.buttonRadioPressed = true;
                         break;
+                    case MCP_BTN_BLUETOOTH:
+                        flags.frontPanel.buttonBluetoothPressed = true;
+                        break;
                     case MCP_BTN_SYSTEM:
                         flags.frontPanel.buttonSystemPressed = true;
+                        break;
+                    case MCP_BTN_ALARM:
+                        flags.frontPanel.buttonAlarmPressed = true;
+                        break;
+                    case MCP_BTN_LAMP:
+                        flags.frontPanel.buttonLampPressed = true;
+                        break;                    
                     default:
                         break;
 
