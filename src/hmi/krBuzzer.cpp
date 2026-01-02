@@ -8,7 +8,7 @@ void buzzer_init()
 {
     pinMode(PIN_BUZZER, OUTPUT);
 
-    buzzer_beep(200);
+    //buzzer_beep(200);
 }
 
 void buzzer_beep(uint16_t duration)

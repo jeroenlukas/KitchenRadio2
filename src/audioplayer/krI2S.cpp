@@ -6,19 +6,26 @@
 #include "configuration/constants.h"
 #include "audioplayer/krI2S.h"
 #include "audioplayer/krAudioplayer.h"
+#include "audioplayer/cbuf_ps.h"
 
 // Source:
 // https://diyi0t.com/i2s-sound-tutorial-for-esp32/
 //
 // https://dronebotworkshop.com/esp32-i2s/
 
+
+cbuf_ps circ_buffer(1024); 
+
 const i2s_port_t I2S_PORT = I2S_NUM_0;
 
-#define I2S_BUFFERLEN   64
-//int16_t sBuffer[I2S_BUFFERLEN];
-uint8_t sBuffer[I2S_BUFFERLEN];
+bool buffered_enough = false;
 
-unsigned char bt_wav_header[44] = {
+#define MIN_BUFFER_FILL 512
+#define I2S_BUFFERLEN   64
+uint8_t sBuffer[I2S_BUFFERLEN];
+//char sBuffer[I2S_BUFFERLEN];
+
+uint8_t bt_wav_header[44] = {
     0x52, 0x49, 0x46, 0x46, // RIFF
     0xFF, 0xFF, 0xFF, 0xFF, // size
     0x57, 0x41, 0x56, 0x45, // WAVE
@@ -48,7 +55,7 @@ esp_err_t err;
     .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_STAND_I2S),
     .intr_alloc_flags = 0,
     .dma_buf_count = 8,
-    .dma_buf_len = I2S_BUFFERLEN,
+    .dma_buf_len = 512, //I2S_BUFFERLEN,
     .use_apll = false
   };
  
@@ -81,6 +88,12 @@ esp_err_t err;
 void slavei2s_sendheader()
 {
   player.playChunk(bt_wav_header, 44);
+  //circBuffer.write(bt_wav_header, 44);
+}
+
+bool slavei2s_buffered_enough()
+{
+  return buffered_enough;
 }
 
 void slavei2s_handle()
@@ -88,13 +101,13 @@ void slavei2s_handle()
     size_t bytesIn = 0;
     if(audioplayer_soundMode == SOUNDMODE_BLUETOOTH)
     {
-        esp_err_t result = i2s_read(I2S_PORT, &sBuffer, I2S_BUFFERLEN, &bytesIn, portMAX_DELAY);
+        esp_err_t result = i2s_read(I2S_PORT, &sBuffer, I2S_BUFFERLEN, &bytesIn,10);// portMAX_DELAY);
 
         if (result == ESP_OK)
         {
           if(bytesIn > 0)
           {
-           // Serial.println("data: " + String(bytesIn));
+          // Serial.println(String(bytesIn));
            // Read I2S data buffer
           /*int16_t samples_read = bytesIn / 8;
           if (samples_read > 0) {
@@ -109,10 +122,51 @@ void slavei2s_handle()
             // Print to serial plotter
             Serial.println(mean);*/
             if(player.data_request())
-            {
-              player.playChunk(sBuffer, 64);
-            }
+              player.playChunk(sBuffer, bytesIn);
+            
+            // Add data to buffer
+            //circ_buffer.write(sBuffer, bytesIn);
+            
+             // player.playChunk(sBuffer, I2S_BUFFERLEN);
+              
+              // Add data to buffer
+             /* circBuffer.write(sBuffer, bytesIn);
+
+              if(circBuffer.available() > 1024 * 10)
+                {
+                    buffered_enough = true;
+                }
+                else buffered_enough = false;*/
+              
+            
           }        
         }
+
+        
+        
+    }
+}
+
+void slavei2s_playchunk()
+{
+  return;
+  // If data in buffer, send it to VS1053
+    if(circ_buffer.available() > MIN_BUFFER_FILL)
+    {
+      //Serial.println(String(circ_buffer.available()));
+      size_t bytesRead = 0;
+      uint8_t wavbuff[128];
+
+      if(player.data_request())
+      {
+        bytesRead = circ_buffer.read((char *)wavbuff, 32);
+
+        if (bytesRead < 32)
+        {
+            Serial.printf("Only read %d bytes from  circular buffer\n", bytesRead);
+        }
+
+        player.playChunk(wavbuff, bytesRead);
+      }
     }
 }

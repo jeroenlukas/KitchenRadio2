@@ -78,10 +78,14 @@ void audioplayer_set_soundmode(uint8_t soundMode)
 
         case SOUNDMODE_BLUETOOTH:
            // kcx_stop();
-
+            audioplayer_flushbuffer();
             //player.writeRegister(0x0, 0x4804 ); // default + reset
             break;
     }
+
+    audioplayer_flushbuffer();
+    player.softReset();
+    
 
     // Switch to the new soundmode
     switch(soundMode)
@@ -102,27 +106,7 @@ void audioplayer_set_soundmode(uint8_t soundMode)
            // front_led_on(LED_BLUETOOTH);
             log_debug("Bluetooth mode");
             front_led_on(MCP_LED_BLUETOOTH);
-            //kcx_start();
 
-            //delay(10);
-            //  Do a soft reset, otherwise the volume will be at a weird setting when switching to Bluetooth
-            //player.setVolume(100);
-            //player.softReset();
-            //delay(300);
-
-            //uint16_t sci_mode = player.read_register(0x00);
-            //Serial.println("sci_mode: " + String(sci_mode));
-            
-           /* player.writeRegister(0xC, 44100);   // aictrl0 samp rate
-            player.writeRegister(0xD, 1024);    // aictrl1, gain. controlled by volume pot
-            player.writeRegister(0xE, 1024);    // aictrl2 max autogain amp, not used
-            player.writeRegister(0xF, 1);       // aictrl3 mode
-            player.setVolume(100);
-            player.writeRegister(0x0, sci_mode | (1 << 12) | (1 << 14) | (1 << 2));            
-            delay(10);
-            player.setVolume(100);
-            sci_mode = player.read_register(0x00);
-            Serial.println("new sci_mode: " + String(sci_mode));*/
             audioplayer_set_mute(false);
             slavei2s_sendheader();
             break;
@@ -135,23 +119,32 @@ void audioplayer_set_soundmode(uint8_t soundMode)
     
 }
 
+// Send audio data (MP3 for webradio, WAV for Bluetooth/i2s) from the circular buffer to the VS1053
 void IRAM_ATTR audioplayer_feedbuffer()
 {
-    if(webradio_buffered_enough() == false)
-    return;
+    if(audioplayer_soundMode == SOUNDMODE_OFF)
+        return;
+
+    if((audioplayer_soundMode == SOUNDMODE_WEBRADIO) && (webradio_buffered_enough() == false))
+        return;
+
+    if((audioplayer_soundMode == SOUNDMODE_BLUETOOTH))//&& (slavei2s_buffered_enough() == false))
+        return;
+
 
     if (circBuffer.available() > 0)
     {
         // Does the VS1053 want any more data (yet)?
         if (player.data_request())
-        {
-
-            
-
-            int bytesRead = circBuffer.read((char *)mp3buff, 32);
+        {           
+            int bytesRead=0;
+            if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+                bytesRead = circBuffer.read((char *)mp3buff, 32);
+            else
+                bytesRead = circBuffer.read((char *)mp3buff, 32);
             
             // If we didn't read the full 32 bytes, that's a worry
-            if (bytesRead != 32)
+            if (bytesRead < 32)
             {
                 Serial.printf("Only read %d bytes from  circular buffer\n", bytesRead);
             }

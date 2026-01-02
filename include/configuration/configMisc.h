@@ -17,7 +17,7 @@
 #define CONF_DISPLAY_AUTO_BRIGHTNESS_MAX    80
 
 // Enables 'night mode' - front LEDs are off when LDR is below this value
-#define CONF_LEDS_NIGHT_MODE                10  
+#define CONF_LEDS_NIGHT_MODE                1
 
 
 // Boot Log - note: these values are not pixels but the number of characters!

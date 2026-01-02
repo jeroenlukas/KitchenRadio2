@@ -143,9 +143,8 @@ void setup()
   const char * location = settings["location"];
   log_boot("Location: " + String(location));
 
-  kcx_init();
+  //kcx_init();
 
-  audioplayer_set_soundmode(SOUNDMODE_OFF);
 
   log_boot("Init buzzer");
   buzzer_init();
@@ -209,6 +208,9 @@ void setup()
     log_boot("Error: VS1053 not found!");
   }
 
+
+  audioplayer_set_soundmode(SOUNDMODE_OFF);
+
   // Set tone control
   audioplayer_setbass(settings["audio"]["tonecontrol"]["bass"]);
   audioplayer_settreble(settings["audio"]["tonecontrol"]["treble"]);
@@ -256,15 +258,19 @@ void loop()
  
   kcx_read();
 
+  slavei2s_playchunk();
+
   webserver_cleanup_clients();
   
   front_handle();
 
   webradio_handle_stream();
 
+  slavei2s_handle();
+
   audioplayer_feedbuffer();
 
-  slavei2s_handle();
+  slavei2s_playchunk();
 
   cli_handle();
 
@@ -449,6 +455,8 @@ void loop()
         break;
     }    
   }
+
+slavei2s_playchunk();
 
 if(flags.frontPanel.encoder1TurnRight)
   {

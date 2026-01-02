@@ -114,7 +114,7 @@ void display_draw_menu_home()
             u8g2.drawStr(42, 28,(String(information.weather.windSpeedBft) + " Bft").c_str());
             u8g2.drawStr(42, 38,(String(information.weather.stateShort)).c_str());
             u8g2.setFont(FONT_S);
-            if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+            if(audioplayer_soundMode != SOUNDMODE_OFF)
               u8g2.drawStr(POSX_CLOCK + 20, 60, ("B: " + String(circBuffer.available()) + " B").c_str());
 
             u8g2.drawStr(155, 60, ("Vol: " + String(information.audioPlayer.volume) + "%").c_str());
