@@ -258,8 +258,7 @@ void loop()
  
   kcx_read();
 
-  slavei2s_playchunk();
-
+  
   webserver_cleanup_clients();
   
   front_handle();
@@ -270,7 +269,7 @@ void loop()
 
   audioplayer_feedbuffer();
 
-  slavei2s_playchunk();
+  
 
   cli_handle();
 
@@ -456,7 +455,7 @@ void loop()
     }    
   }
 
-slavei2s_playchunk();
+
 
 if(flags.frontPanel.encoder1TurnRight)
   {

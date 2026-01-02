@@ -29,6 +29,9 @@ class Information {
             int treble;
 
             int bluetoothMode;
+
+            String bluetoothTitle;
+            String bluetoothArtist;
         };
 
         struct Lamp

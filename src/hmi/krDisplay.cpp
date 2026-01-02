@@ -158,7 +158,7 @@ void display_draw_menu_home()
               u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_bluetooth_width, xbm_bluetooth_height, xbm_bluetooth_bits);
 
               u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "Bluetooth");
+              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, information.audioPlayer.bluetoothTitle.c_str());
               u8g2.setFont(u8g2_font_open_iconic_all_2x_t);
               switch(information.audioPlayer.bluetoothMode)
               {

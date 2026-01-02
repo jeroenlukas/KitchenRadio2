@@ -12,6 +12,7 @@
 #define KCX_NOTCONNECTED    2
 #define KCX_PLAYING         3
 #define KCX_PAUSED          4
+#define KCX_STOPPED         5
 
 // LCD custom character indices
 #define LCD_CUST_DEGREE     0

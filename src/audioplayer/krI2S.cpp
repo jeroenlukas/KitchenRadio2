@@ -3,24 +3,24 @@
 
 
 #include "configuration/config.h"
+#include "configuration/configPinout.h"
 #include "configuration/constants.h"
 #include "audioplayer/krI2S.h"
 #include "audioplayer/krAudioplayer.h"
-#include "audioplayer/cbuf_ps.h"
+#include "information/krInfo.h"
+
 
 // Source:
 // https://diyi0t.com/i2s-sound-tutorial-for-esp32/
 //
 // https://dronebotworkshop.com/esp32-i2s/
 
-
-cbuf_ps circ_buffer(1024); 
+HardwareSerial serial_bt(2);
 
 const i2s_port_t I2S_PORT = I2S_NUM_0;
 
-bool buffered_enough = false;
 
-#define MIN_BUFFER_FILL 512
+//#define MIN_BUFFER_FILL 512
 #define I2S_BUFFERLEN   64
 uint8_t sBuffer[I2S_BUFFERLEN];
 //char sBuffer[I2S_BUFFERLEN];
@@ -43,7 +43,8 @@ uint8_t bt_wav_header[44] = {
 
 void slavei2s_init()
 {
-esp_err_t err;
+  // Init I2S
+  esp_err_t err;
 
  // The I2S config as per the example
   
@@ -83,90 +84,67 @@ esp_err_t err;
   Serial.println("I2S driver installed.");
 
   i2s_start(I2S_PORT);
+
+  // Init UART
+  serial_bt.begin(115200, SERIAL_8N1, PIN_UART_BT_RX, PIN_UART_BT_TX);
+  serial_bt.println("HALLO");
 }
 
+// Send WAV header to notify VS1053
 void slavei2s_sendheader()
 {
   player.playChunk(bt_wav_header, 44);
-  //circBuffer.write(bt_wav_header, 44);
+  serial_bt.println("header!!!");
 }
 
-bool slavei2s_buffered_enough()
+void slavei2s_command_parse(String command)
 {
-  return buffered_enough;
+  if(command == "AT+AUDIOSTATE=PLAYING")
+  {
+    Serial.println("PLaying");
+    information.audioPlayer.bluetoothMode = KCX_PLAYING;
+  }
+  else if(command == "AT+AUDIOSTATE=PAUSED")
+  {
+    Serial.println("Paused");
+    information.audioPlayer.bluetoothMode = KCX_PAUSED;
+  }
+  else if(command == "AT+AUDIOSTATE=STOPPED")
+  {
+    Serial.println("Stopped");
+    information.audioPlayer.bluetoothMode = KCX_STOPPED;
+  }
+  else if(command.startsWith("AT+TITLE"))
+  {
+    information.audioPlayer.bluetoothTitle = command.substring(9);
+  }
 }
 
+// Read data from I2S DMA buffer and send it to the VS1053.
+// Also parse UART commands
 void slavei2s_handle()
 {
-    size_t bytesIn = 0;
-    if(audioplayer_soundMode == SOUNDMODE_BLUETOOTH)
-    {
-        esp_err_t result = i2s_read(I2S_PORT, &sBuffer, I2S_BUFFERLEN, &bytesIn,10);// portMAX_DELAY);
+  size_t bytesIn = 0;
+  if(audioplayer_soundMode == SOUNDMODE_BLUETOOTH)
+  {
+    esp_err_t result = i2s_read(I2S_PORT, &sBuffer, I2S_BUFFERLEN, &bytesIn, 10);// portMAX_DELAY);
 
-        if (result == ESP_OK)
-        {
-          if(bytesIn > 0)
-          {
-          // Serial.println(String(bytesIn));
-           // Read I2S data buffer
-          /*int16_t samples_read = bytesIn / 8;
-          if (samples_read > 0) {
-            float mean = 0;
-            for (int16_t i = 0; i < samples_read; ++i) {
-              mean += (sBuffer[i]);
-            }
-      
-            // Average the data reading
-            mean /= samples_read;
-      
-            // Print to serial plotter
-            Serial.println(mean);*/
-            if(player.data_request())
-              player.playChunk(sBuffer, bytesIn);
-            
-            // Add data to buffer
-            //circ_buffer.write(sBuffer, bytesIn);
-            
-             // player.playChunk(sBuffer, I2S_BUFFERLEN);
-              
-              // Add data to buffer
-             /* circBuffer.write(sBuffer, bytesIn);
-
-              if(circBuffer.available() > 1024 * 10)
-                {
-                    buffered_enough = true;
-                }
-                else buffered_enough = false;*/
-              
-            
-          }        
-        }
-
-        
-        
+    if ((result == ESP_OK) && (bytesIn > 0) && player.data_request())
+    {          
+      player.playChunk(sBuffer, bytesIn);          
     }
+  }
+
+  if(serial_bt.available() > 0)
+  {
+    String str = serial_bt.readStringUntil('\n');      
+    
+    Serial.println("Recv: "  + str);
+    slavei2s_command_parse(str);
+  }
 }
 
-void slavei2s_playchunk()
-{
-  return;
-  // If data in buffer, send it to VS1053
-    if(circ_buffer.available() > MIN_BUFFER_FILL)
-    {
-      //Serial.println(String(circ_buffer.available()));
-      size_t bytesRead = 0;
-      uint8_t wavbuff[128];
-
-      if(player.data_request())
-      {
-        bytesRead = circ_buffer.read((char *)wavbuff, 32);
-
-        if (bytesRead < 32)
-        {
-            Serial.printf("Only read %d bytes from  circular buffer\n", bytesRead);
-        }
-
-        player.playChunk(wavbuff, bytesRead);
-      }
-    }
+void slavei2s_send(String str)
+{  
+  serial_bt.print(str + '\n');
 }

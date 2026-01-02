@@ -14,6 +14,7 @@
 #include "hmi/krLamp.h"
 #include "hmi/krDisplay.h"
 #include "hmi/krBuzzer.h"
+#include "audioplayer/krI2S.h"
 
 #include <SimpleCLI.h>
 
@@ -31,6 +32,7 @@ Command cmd_cat;
 Command cmd_fake;
 Command cmd_oled;
 Command cmd_buzzer;
+Command cmd_bt;
 
 void cli_handle();
 
@@ -196,6 +198,39 @@ void cb_buzzer(cmd* c)
     return;
 }
 
+void cb_bt(cmd* c)
+{
+    Command cmd(c);
+
+    if(cmd.getArgument("reset").isSet())
+    {
+        slavei2s_send("AT+RESET");
+    }
+    if(cmd.getArgument("pause").isSet())
+    {
+        slavei2s_send("AT+PAUSE");
+    }
+    if(cmd.getArgument("play").isSet())
+    {
+        slavei2s_send("AT+PLAY");
+    }
+    if(cmd.getArgument("stop").isSet())
+    {
+        slavei2s_send("AT+STOP");
+    }
+    if(cmd.getArgument("start").isSet())
+    {
+        slavei2s_send("AT+START");
+    }
+    if(cmd.getArgument("end").isSet())
+    {
+        slavei2s_send("AT+END");
+    }
+    
+    
+    
+}
+
 void cb_bootlog(cmd* c)
 {
     Serial.print(bootlog);
@@ -324,6 +359,15 @@ void cli_init(void)
 
     // > buzzer
     cmd_buzzer = kr_cli.addSingleArgCmd("buzzer", cb_buzzer);
+
+    // > bt
+    cmd_bt = kr_cli.addCmd("bt", cb_bt);
+    cmd_bt.addFlagArgument("reset");
+    cmd_bt.addFlagArgument("pause");
+    cmd_bt.addFlagArgument("play");
+    cmd_bt.addFlagArgument("stop");
+    cmd_bt.addFlagArgument("start");
+    cmd_bt.addFlagArgument("end");
 
 
 }

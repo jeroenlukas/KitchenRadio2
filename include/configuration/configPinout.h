@@ -78,6 +78,9 @@
 #define PIN_SLAVEI2S_SD      41
 #define PIN_SLAVEI2S_WS      40
 
+#define PIN_UART_BT_TX  43
+#define PIN_UART_BT_RX  44
+
 #endif
 
 #ifdef KR_REV0
