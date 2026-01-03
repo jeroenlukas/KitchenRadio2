@@ -8,7 +8,6 @@
 #include "information/krInfo.h"
 #include "configuration/constants.h"
 #include "settings/krSettings.h"
-#include "audioplayer/kcx.h"
 #include "audioplayer/krI2S.h"
 #include "logger.h"
 #include "flags.h"
@@ -55,8 +54,6 @@ void audioplayer_setvolume(uint8_t volume)
     
     // Convert to logarithmic scale
     uint8_t vol_log = 2.5 * 20 * log10(information.audioPlayer.volume);
-
-    log_debug("Set vol_log: " + String(vol_log));
     
     player.setVolume(vol_log);
 }
@@ -73,17 +70,15 @@ void audioplayer_set_soundmode(uint8_t soundMode)
             break;
 
         case SOUNDMODE_WEBRADIO:
-            audioplayer_flushbuffer();
             webradio_stop();
             break;
 
-        case SOUNDMODE_BLUETOOTH:
-            audioplayer_flushbuffer();
+        case SOUNDMODE_BLUETOOTH:            
             slavei2s_send("AT+END");
             break;
     }
 
-    //audioplayer_flushbuffer();
+    audioplayer_flushbuffer();
     player.softReset();    
 
     // Switch to the new soundmode
@@ -114,11 +109,8 @@ void audioplayer_set_soundmode(uint8_t soundMode)
             break;
     }
 
-    // Force volume to be updated
     audioplayer_soundMode = soundMode;
-    flags.frontPanel.volumePotChanged = true;
-
-    
+   
 }
 
 // Send MP3 data  from the circular buffer to the VS1053

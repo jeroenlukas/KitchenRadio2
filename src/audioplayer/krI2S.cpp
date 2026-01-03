@@ -152,3 +152,12 @@ void slavei2s_send(String str)
 {  
   serial_bt.print(str + '\n');
 }
+
+void slavei2s_playpause()
+{
+  if(information.audioPlayer.bluetoothMode == KCX_PAUSED)
+    slavei2s_send("AT+PLAY");
+
+  else if(information.audioPlayer.bluetoothMode == KCX_PLAYING)
+    slavei2s_send("AT+PAUSE");
+}

@@ -9,4 +9,6 @@ extern void slavei2s_sendheader();
 
 extern void slavei2s_send(String str);
 
+extern void slavei2s_playpause();
+
 #endif

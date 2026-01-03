@@ -191,7 +191,13 @@ void front_buttons_read()
                         break;
                     case MCP_BTN_LAMP:
                         flags.frontPanel.buttonLampPressed = true;
-                        break;                    
+                        break;    
+                    case MCP_BTN_ENC1:
+                        flags.frontPanel.encoder1ButtonPressed = true;
+                        break;
+                    case MCP_BTN_ENC2:
+                        flags.frontPanel.encoder2ButtonPressed = true;
+                        break;                
                     default:
                         break;
 

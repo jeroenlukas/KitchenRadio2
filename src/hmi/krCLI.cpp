@@ -6,7 +6,6 @@
 #include "configuration/constants.h"
 
 #include "audioplayer/krAudioplayer.h"
-#include "audioplayer/kcx.h"
 #include "information/krWeather.h"
 #include "information/krTime.h"
 #include "information/krInfo.h"

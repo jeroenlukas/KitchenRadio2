@@ -29,8 +29,6 @@
 #include "information/krWeather.h"
 #include "information/krTime.h"
 #include "configuration/constants.h"
-#include "audioplayer/kcx.h"
-//#include "hmi/krMonitor.h"
 #include "hmi/xbmIcons.h"
 #include "hmi/krLamp.h"
 #include "hmi/krCLI.h"
@@ -144,9 +142,6 @@ void setup()
   const char * location = settings["location"];
   log_boot("Location: " + String(location));
 
-  //kcx_init();
-
-
   log_boot("Init buzzer");
   buzzer_init();
 
@@ -155,8 +150,8 @@ void setup()
  
   information.webRadio.station_count = webradio_get_num_stations();
   log_boot("Stations: " + String( information.webRadio.station_count));
+  
   // WiFi setup
-
   log_boot("Connecting to WiFi...");
 
   WiFi.mode(WIFI_STA);
@@ -177,16 +172,14 @@ void setup()
   
   information.system.IPAddress = WiFi.localIP().toString(); 
 
-  /*u8g2log.setRedrawMode(0);*/
   log_boot("\nConnected! (" + (information.system.IPAddress) + ")");
   log_boot("RSSI: " + String(WiFi.RSSI()) + " dBm");
 
   log_boot("Init led ring");
-  lamp_init();
-
- 
+  lamp_init(); 
   
   // Time 
+  log_boot("Init time");
   time_init();
   time_waitForSync();
   const char * tz = settings["clock"]["timezone"];
@@ -217,12 +210,11 @@ void setup()
   audioplayer_settreble(settings["audio"]["tonecontrol"]["treble"]);
 
   // Get weather
+  log_boot("Retrieve weather");
   weather_retrieve();
 
   log_boot("Starting webserver");
   webserver_init();
-
-  delay(100);
 
   // Turn off leds
   front_led_off(MCP_LED_WEBRADIO);
@@ -237,6 +229,10 @@ void setup()
   ticker_userinput_ref.start();  
 
   audioplayer_setvolume(50);
+
+  log_boot("Device ready");
+
+  delay(100);
 
   // Debug log on main screen
   log_debug_init();
@@ -257,9 +253,8 @@ void loop()
     display_draw_menu();
   }
  
-  kcx_read();
+  //kcx_read();
 
-  
   webserver_cleanup_clients();
   
   front_handle();
@@ -268,9 +263,7 @@ void loop()
 
   slavei2s_handle();
 
-  audioplayer_feedbuffer();
-
-  
+  audioplayer_feedbuffer();  
 
   cli_handle();
 
@@ -287,8 +280,6 @@ void loop()
     front_ldr_read();
 
     display_set_brightness_auto();
-
-    kcx_getstatus();
 
     information.system.uptimeSeconds++;
     information.system.wifiRSSI = WiFi.RSSI();
@@ -390,14 +381,20 @@ void loop()
     lamp_toggle();
   }
 
-  if (flags.frontPanel.encoderButtonPressed)
+  if (flags.frontPanel.encoder1ButtonPressed)
   {
-    flags.frontPanel.encoderButtonPressed = false;
+    flags.frontPanel.encoder1ButtonPressed = false;
+    // TODO implement mute function
+  }
+
+  if (flags.frontPanel.encoder2ButtonPressed)
+  {
+    flags.frontPanel.encoder2ButtonPressed = false;
 
     switch(audioplayer_soundMode)
     {
       case SOUNDMODE_BLUETOOTH:
-        kcx_pausePlay();
+        slavei2s_playpause();
         break;
     }
   }
@@ -415,7 +412,6 @@ void loop()
         switch(menuitem)
         {
           case MITEM_LAMP_STATE:
-            //if(information.lamp.state)
               lamp_toggle();
             break;
           case MITEM_LAMP_HUE:
@@ -471,8 +467,7 @@ if(flags.frontPanel.encoder1TurnRight)
         switch(menuitem)
         {
           case MITEM_LAMP_STATE:
-            //if(information.lamp.state)
-              lamp_toggle();
+            lamp_toggle();
             break;
           case MITEM_LAMP_HUE:
             lamp_sethue(information.lamp.hue + 0.01);
@@ -567,8 +562,6 @@ if(flags.frontPanel.encoder1TurnRight)
   if(flags.frontPanel.buttonAnyPressed)
   {
     flags.frontPanel.buttonAnyPressed = false;
-    
-    //log_debug("ANY button");
     
     display_draw_menu();
 

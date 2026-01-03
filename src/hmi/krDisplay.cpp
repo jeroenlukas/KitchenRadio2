@@ -37,6 +37,23 @@ void display_update_scroll_offset();
 
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
 
+String convertTime(uint32_t timeInSeconds)
+{  
+  uint8_t seconds = timeInSeconds % 60;
+  timeInSeconds /= 60;
+  uint8_t minutes = timeInSeconds % 60;
+  timeInSeconds /= 60;
+  uint8_t hours = timeInSeconds % 24;
+  uint8_t days = timeInSeconds / 24;
+  String res;
+  if(days > 0) res.concat(String(days) + "d ");
+  if(hours > 0) res.concat(String(hours) + "h");
+  if(minutes > 0) res.concat(String(minutes) + "m");
+  res.concat(String(seconds) + "s");
+  //String res = String(days) + "d" + String(hours) + "h" + String(minutes) + "m" + String(seconds) + "s";
+  return res;
+}
+
 void display_update_scroll_offset()
 {
   #define BOX_WIDTH (224 - POSX_AUDIO)
@@ -138,9 +155,10 @@ void display_draw_menu_home()
             int weatherglyph = 0;
             // https://openweathermap.org/weather-conditions
 
-            u8g2.drawGlyph(5, 35, weather_icon_to_glyph(information.weather.icon));
-            u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-            u8g2.drawStr(42, 18,(String(information.weather.temperature,1) + " C").c_str());
+            u8g2.drawGlyph(3, 35, weather_icon_to_glyph(information.weather.icon));
+            u8g2.setFont(u8g2_font_lastapprenticebold_te);
+            uint8_t w = u8g2.drawStr(42, 18,(String(information.weather.temperature,1) + "  C").c_str());
+            u8g2.drawGlyph((42 + w) - 13, 18, 0x00b0);
             u8g2.setFont(FONT_M);
             u8g2.drawStr(42, 28,(String(information.weather.windSpeedBft) + " Bft").c_str());
             u8g2.drawStr(42, 38,(String(information.weather.stateShort)).c_str());
@@ -160,8 +178,6 @@ void display_draw_menu_home()
           u8g2.drawStr(POSX_CLOCK + 10, POSY_CLOCK + 12, (information.dateMid).c_str());
 
           // Misc
-          u8g2.setFont(FONT_S);
-
           u8g2.drawLine(0, 44, 256, 44);
 
           // Sound mode / Station / Bluetooth audio title/artist
@@ -178,7 +194,7 @@ void display_draw_menu_home()
               u8g2.drawStr(POSX_AUDIO -20, POSY_AUDIO+1, (String(information.webRadio.buffer_pct) + "%").c_str() );
 
               // Draw station name in clipwindow
-              u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+              u8g2.setFont(u8g2_font_lastapprenticebold_te);
               u8g2.setClipWindow(POSX_AUDIO, 43, 224, 64);
               display_audio_title_width = u8g2.drawStr(POSX_AUDIO + display_audio_title_scroll_offset, POSY_AUDIO, information.webRadio.station_name.c_str());
               u8g2.setMaxClipWindow();
@@ -187,7 +203,7 @@ void display_draw_menu_home()
               u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_bluetooth_width, xbm_bluetooth_height, xbm_bluetooth_bits);
 
               // Draw bluetooth title in clipwindow
-              u8g2.setFont(u8g2_font_lastapprenticebold_tr);
+              u8g2.setFont(u8g2_font_lastapprenticebold_te);
               u8g2.setClipWindow(POSX_AUDIO, 43, 224, 64);              
               display_audio_title_width = u8g2.drawStr(POSX_AUDIO + display_audio_title_scroll_offset, POSY_AUDIO, String(information.audioPlayer.bluetoothArtist + " - " + information.audioPlayer.bluetoothTitle).c_str());
               u8g2.setMaxClipWindow();
@@ -197,24 +213,24 @@ void display_draw_menu_home()
               switch(information.audioPlayer.bluetoothMode)
               {
                 case KCX_OFF:                  
-                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 285);
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO+2, 285);
                   break;
                 case KCX_NOTCONNECTED:
-                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 285);
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO+2, 285);
                   break;
                 case KCX_PAUSED:
-                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 210);
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO+2, 210);
                   break;
                 case KCX_PLAYING:
-                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 211);
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO+2, 211);
                   break;
                 case KCX_UNKNOWN:            
-                  u8g2.drawStr(POSX_AUDIO - 20, POSY_AUDIO, "(?)");
+                  u8g2.drawStr(POSX_AUDIO - 20, POSY_AUDIO+2, "(?)");
                   break;
               }
               break;
           }
-          u8g2.setMaxClipWindow();
+          //u8g2.setMaxClipWindow();
 
           // Log window
           log_debug_draw();
@@ -293,7 +309,8 @@ void display_draw_menu_system()
     case MITEM_SYSTEM_INFO:
       u8g2.drawStr(10, 22, "IP: ");         u8g2.drawStr(70, 22, information.system.IPAddress.c_str());
       u8g2.drawStr(10, 32, "RSSI:");        u8g2.drawStr(70, 32, (String(information.system.wifiRSSI) + " dBm").c_str());
-      u8g2.drawStr(10, 42, "Uptime:");      u8g2.drawStr(70, 42, (String(information.system.uptimeSeconds) + " sec").c_str());
+      //u8g2.drawStr(10, 42, "Uptime:");      u8g2.drawStr(70, 42, (String(information.system.uptimeSeconds) + " sec").c_str());
+      u8g2.drawStr(10, 42, "Uptime:");      u8g2.drawStr(70, 42, convertTime(information.system.uptimeSeconds).c_str());
       u8g2.drawStr(150, 22, "Amb.light:");  u8g2.drawStr(200, 22, (String(information.system.ldr) + "%").c_str());
       u8g2.drawStr(150, 32, "Wind:");       u8g2.drawStr(200, 32, (String(information.weather.windSpeedKmh) + "kmh").c_str());
       break;
