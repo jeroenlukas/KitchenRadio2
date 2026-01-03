@@ -18,6 +18,10 @@
 int menu = MENU_HOME;
 int menuitem = 0;
 
+int16_t display_audio_title_scroll_offset = 0;
+bool display_audio_title_scroll_dir = true;
+uint16_t display_audio_title_width = 0;
+
 String mitem_lamp_state_desc[2] = {"off", "on"};
 String mitem_lamp_effecttype_desc[2] = {"off", "color fade"};
 
@@ -28,9 +32,37 @@ void display_draw_menu_lamp();
 void display_draw_menu_system();
 void display_set_brightness(uint8_t brightness);
 void display_set_brightness_auto();
+void display_update_scroll_offset();
 
 
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
+
+void display_update_scroll_offset()
+{
+  #define BOX_WIDTH (224 - POSX_AUDIO)
+  if(display_audio_title_width < BOX_WIDTH)
+  {
+    display_audio_title_scroll_offset = 0;
+    return;
+  }
+
+  if(display_audio_title_scroll_dir)
+  {
+    display_audio_title_scroll_offset+=2;
+  }
+  else
+    display_audio_title_scroll_offset-=2;
+
+  // Reverse 
+  if(display_audio_title_scroll_offset > 2)
+    display_audio_title_scroll_dir = !display_audio_title_scroll_dir;
+
+  else if(display_audio_title_scroll_offset < ((BOX_WIDTH - display_audio_title_width)-3))
+    display_audio_title_scroll_dir = !display_audio_title_scroll_dir;
+
+  
+
+}
 
 void display_set_brightness(uint8_t brightness)
 {
@@ -106,7 +138,6 @@ void display_draw_menu_home()
             int weatherglyph = 0;
             // https://openweathermap.org/weather-conditions
 
-            //u8g2.drawGlyph(5, 35, weather_statecode_to_glyph(information.weather.stateCode));
             u8g2.drawGlyph(5, 35, weather_icon_to_glyph(information.weather.icon));
             u8g2.setFont(u8g2_font_lastapprenticebold_tr);
             u8g2.drawStr(42, 18,(String(information.weather.temperature,1) + " C").c_str());
@@ -114,14 +145,8 @@ void display_draw_menu_home()
             u8g2.drawStr(42, 28,(String(information.weather.windSpeedBft) + " Bft").c_str());
             u8g2.drawStr(42, 38,(String(information.weather.stateShort)).c_str());
             u8g2.setFont(FONT_S);
-            if(audioplayer_soundMode != SOUNDMODE_OFF)
-              u8g2.drawStr(POSX_CLOCK + 20, 60, ("B: " + String(circBuffer.available()) + " B").c_str());
-
-            u8g2.drawStr(155, 60, ("Vol: " + String(information.audioPlayer.volume) + "%").c_str());
           }
              
-          
-
           // Clock
           u8g2.setFont(FONT_CLOCK);
           u8g2.setCursor(POSX_CLOCK, POSY_CLOCK);
@@ -136,54 +161,69 @@ void display_draw_menu_home()
 
           // Misc
           u8g2.setFont(FONT_S);
-          //u8g2.drawStr(POSX_CLOCK + 30, 60, ("LDR: " + String(information.system.ldr) + "%").c_str());
 
           u8g2.drawLine(0, 44, 256, 44);
 
-          // Sound mode / Station 
-          
+          // Sound mode / Station / Bluetooth audio title/artist
           switch(audioplayer_soundMode)
           {
-            case SOUNDMODE_OFF:
-            
-              //u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-              //u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, "");
+            case SOUNDMODE_OFF:            
               break;
             case SOUNDMODE_WEBRADIO:
               u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_radio_width, xbm_radio_height, xbm_radio_bits);
+              
+              // Draw buffer fill percentage, station index + count
+              u8g2.setFont(FONT_S);
+              u8g2.drawStr(POSX_AUDIO -20, POSY_AUDIO-7, (String(information.webRadio.station_index + 1) + "/" + String(information.webRadio.station_count)).c_str() );
+              u8g2.drawStr(POSX_AUDIO -20, POSY_AUDIO+1, (String(information.webRadio.buffer_pct) + "%").c_str() );
+
+              // Draw station name in clipwindow
               u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, (String(information.webRadio.station_index + 1) + "/" + String(information.webRadio.station_count) + " " + (information.webRadio.station_name)).c_str());
+              u8g2.setClipWindow(POSX_AUDIO, 43, 224, 64);
+              display_audio_title_width = u8g2.drawStr(POSX_AUDIO + display_audio_title_scroll_offset, POSY_AUDIO, information.webRadio.station_name.c_str());
+              u8g2.setMaxClipWindow();
               break;
             case SOUNDMODE_BLUETOOTH:
               u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_bluetooth_width, xbm_bluetooth_height, xbm_bluetooth_bits);
 
+              // Draw bluetooth title in clipwindow
               u8g2.setFont(u8g2_font_lastapprenticebold_tr);
-              u8g2.drawStr(POSX_AUDIO, POSY_AUDIO, information.audioPlayer.bluetoothTitle.c_str());
+              u8g2.setClipWindow(POSX_AUDIO, 43, 224, 64);              
+              display_audio_title_width = u8g2.drawStr(POSX_AUDIO + display_audio_title_scroll_offset, POSY_AUDIO, String(information.audioPlayer.bluetoothArtist + " - " + information.audioPlayer.bluetoothTitle).c_str());
+              u8g2.setMaxClipWindow();
+              
+              // Draw audio state icon
               u8g2.setFont(u8g2_font_open_iconic_all_2x_t);
               switch(information.audioPlayer.bluetoothMode)
               {
-                case KCX_OFF:
-                  //u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "Off");
-                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 285);
+                case KCX_OFF:                  
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 285);
                   break;
                 case KCX_NOTCONNECTED:
-                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 285);
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 285);
                   break;
                 case KCX_PAUSED:
-                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 210);
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 210);
                   break;
                 case KCX_PLAYING:
-                  u8g2.drawGlyph(POSX_AUDIO + 80, POSY_AUDIO, 211);
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 211);
                   break;
                 case KCX_UNKNOWN:            
-                  u8g2.drawStr(POSX_AUDIO + 80, POSY_AUDIO, "(?)");
+                  u8g2.drawStr(POSX_AUDIO - 20, POSY_AUDIO, "(?)");
                   break;
               }
               break;
           }
+          u8g2.setMaxClipWindow();
 
           // Log window
           log_debug_draw();
+
+          // Volume          
+          u8g2.setFont(u8g2_font_open_iconic_all_1x_t);
+          u8g2.drawGlyph(228, POSY_AUDIO, 277);
+          u8g2.setFont(FONT_S);
+          u8g2.drawStr(238, POSY_AUDIO-1, (String(information.audioPlayer.volume) + "%").c_str());
 }
 
 void display_draw_menu_footer(uint16_t mitem_min, uint16_t mitem_max)

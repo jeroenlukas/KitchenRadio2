@@ -29,10 +29,10 @@
 #define MCP_INTB            16
 
 // LEDs
-#define MCP_LED_WEBRADIO   3 //6
-#define MCP_LED_BLUETOOTH  2 //7
-#define MCP_LED_ALARM      1 //15
-#define MCP_LED_LAMP       0 //16
+#define MCP_LED_WEBRADIO   3
+#define MCP_LED_BLUETOOTH  2
+#define MCP_LED_ALARM      1
+#define MCP_LED_LAMP       0
 
 // Buttons
 #define MCP_BTN_OFF        8
@@ -44,16 +44,9 @@
 #define MCP_BTN_ENC1        4
 #define MCP_BTN_ENC2        5
 
-// Buttons
-//#define BUTTONS         //4
-
-// Pot meters
-//#define POT_VOLUME      //5
-
-// Encoder
-#define ROTARY1_A        7 //38
-#define ROTARY1_B        6 //39
-#define BUTTON_ENCODER  //40
+// Encoders
+#define ROTARY1_A        7 
+#define ROTARY1_B        6 
 #define ROTARY2_A        5
 #define ROTARY2_B        4
 

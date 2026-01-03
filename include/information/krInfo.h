@@ -36,9 +36,6 @@ class Information {
 
         struct Lamp
         {
-            ///int r;
-            //int g;
-            //int b;
             bool state;
             float lightness;
             float hue; 
@@ -51,8 +48,8 @@ class Information {
         {
             uint8_t station_index;
             String station_name;
-
             uint8_t station_count;
+            uint8_t buffer_pct;
         };
 
         struct Weather

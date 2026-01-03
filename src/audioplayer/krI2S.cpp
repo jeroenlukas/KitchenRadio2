@@ -87,7 +87,7 @@ void slavei2s_init()
 
   // Init UART
   serial_bt.begin(115200, SERIAL_8N1, PIN_UART_BT_RX, PIN_UART_BT_TX);
-  serial_bt.println("HALLO");
+  slavei2s_send("AT+END");
 }
 
 // Send WAV header to notify VS1053
@@ -117,6 +117,10 @@ void slavei2s_command_parse(String command)
   else if(command.startsWith("AT+TITLE"))
   {
     information.audioPlayer.bluetoothTitle = command.substring(9);
+  }
+  else if(command.startsWith("AT+ARTIST"))
+  {
+    information.audioPlayer.bluetoothArtist = command.substring(10);
   }
 }
 

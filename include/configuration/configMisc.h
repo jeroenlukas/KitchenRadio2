@@ -7,7 +7,7 @@
 #define CIRCBUFFER_SIZE         2 * 1024 * 1024 // 2 MB
 
 // Minimum no. of bytes required in circular buffer to play
-#define CONF_AUDIO_MIN_BYTES    256 * 1024
+#define CONF_AUDIO_MIN_BYTES    (256 * 1024)
 
 // Return to home screen after this many ms of no user input
 #define CONF_MENU_RETURN_HOME_MS    10000
@@ -43,8 +43,8 @@
 #define POSY_CLOCK              26
 
 #define POSX_AUDIO_ICON         2
-#define POSY_AUDIO_ICON         62
-#define POSX_AUDIO              22
+#define POSY_AUDIO_ICON         63
+#define POSX_AUDIO              42
 #define POSY_AUDIO              62
 
 // LED ring

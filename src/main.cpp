@@ -64,6 +64,7 @@ void ticker_100ms()
 {
   //front_read_buttons();  
   front_buttons_read();
+  display_update_scroll_offset();
 }
 
 void ticker_1000ms()
@@ -291,6 +292,7 @@ void loop()
 
     information.system.uptimeSeconds++;
     information.system.wifiRSSI = WiFi.RSSI();
+    information.webRadio.buffer_pct = constrain(((double)circBuffer.available() / (double)CONF_AUDIO_MIN_BYTES) * 100, 0, 100);
   }
 
   // Execute stuff every minute

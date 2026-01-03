@@ -2,8 +2,8 @@
 #define CONSTANTS_H
 
 // Sound modes
-#define SOUNDMODE_OFF 0
-#define SOUNDMODE_WEBRADIO 1
+#define SOUNDMODE_OFF       0
+#define SOUNDMODE_WEBRADIO  1
 #define SOUNDMODE_BLUETOOTH 2
 
 // Bluetooth modes
