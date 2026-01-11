@@ -9,6 +9,7 @@ class Information {
         String timeShort;
         String dateMid;
 
+        String device_name;
 
         struct System
         {

@@ -102,18 +102,13 @@ void display_set_brightness_auto()
 
   if(br_max == 0) br_max = 100;
 
-  
-
   uint8_t brightness = map(information.system.ldr, 0, 100, br_min, br_max);
   
-  display_set_brightness(brightness);
-  //log_debug("Setting birghtness to " + String(brightness));
+  display_set_brightness(brightness);  
 }
 
 void display_draw_menu()
 {
-
-
   u8g2.firstPage();
 
     // This draws the main screen. Only screen related stuff should be done here.
@@ -301,15 +296,14 @@ void display_draw_menu_system()
   display_draw_menu_footer(MITEM_SYSTEM_MIN, MITEM_SYSTEM_MAX);
 
   u8g2.setFont(FONT_M);
-  u8g2.drawStr(10, 10, "System");
+  u8g2.drawStr(10, 10, information.device_name.c_str());
   u8g2.setFont(FONT_S);
 
   switch(menuitem)
   {
     case MITEM_SYSTEM_INFO:
       u8g2.drawStr(10, 22, "IP: ");         u8g2.drawStr(70, 22, information.system.IPAddress.c_str());
-      u8g2.drawStr(10, 32, "RSSI:");        u8g2.drawStr(70, 32, (String(information.system.wifiRSSI) + " dBm").c_str());
-      //u8g2.drawStr(10, 42, "Uptime:");      u8g2.drawStr(70, 42, (String(information.system.uptimeSeconds) + " sec").c_str());
+      u8g2.drawStr(10, 32, "RSSI:");        u8g2.drawStr(70, 32, (String(information.system.wifiRSSI) + " dBm").c_str());      
       u8g2.drawStr(10, 42, "Uptime:");      u8g2.drawStr(70, 42, convertTime(information.system.uptimeSeconds).c_str());
       u8g2.drawStr(150, 22, "Amb.light:");  u8g2.drawStr(200, 22, (String(information.system.ldr) + "%").c_str());
       u8g2.drawStr(150, 32, "Wind:");       u8g2.drawStr(200, 32, (String(information.weather.windSpeedKmh) + "kmh").c_str());

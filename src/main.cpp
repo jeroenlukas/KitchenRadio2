@@ -138,7 +138,8 @@ void setup()
   config_read();
 
   const char * deviceName = settings["devicename"];
-  if(deviceName == "") deviceName = "KitchenRadio2";
+  information.device_name = deviceName;
+  if(deviceName == "") deviceName = "KitchenRadio2";  
   log_boot("Device name: " + String(deviceName));
 
   const char * location = settings["location"];

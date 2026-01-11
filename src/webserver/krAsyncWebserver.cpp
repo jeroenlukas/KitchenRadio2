@@ -227,7 +227,9 @@ String buildHtmlPage(String contentFile)
     File fileFooter = LittleFS.open("/www/_footer.html", "r");
 
     String htmlHeader = fileHeader.readString();
-    fileHeader.close();
+    fileHeader.close();    
+    htmlHeader.replace("$VERSION", KR_VERSION);
+    htmlHeader.replace("$DEVICENAME", information.device_name);
 
     String htmlContent = fileContent.readString();
     fileContent.close();
@@ -259,11 +261,7 @@ void webserver_init() {
   server.on("/stations", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(200, "text/html", buildHtmlPage("stations.html"));
   });
-/*
-  server.on("/config", HTTP_POST, [](AsyncWebServerRequest *request) {
-    AsyncWebParameter* p = request->getParam("config_content", true, false);
-    Serial.printf("POST %s", p->value().c_str());
-  });*/
+
   server.on("/config", HTTP_POST, [](AsyncWebServerRequest *request) {
     // display params
     size_t count = request->params();

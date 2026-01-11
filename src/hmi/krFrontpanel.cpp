@@ -89,7 +89,11 @@ void front_led_off(uint8_t led)
 
 void front_ldr_read()
 {
-    uint16_t adc = 4095 - analogRead(LDR);
+    uint16_t an = analogRead(LDR);
+    uint16_t adc = 4095 - an;
+    
+    //Serial.println("LDR: " + String(an));
+
     information.system.ldr = map(adc, 0, 4095, 0, 100);    
 }
 
