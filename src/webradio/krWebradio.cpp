@@ -1,6 +1,7 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
+#include <YAMLDuino.h>
 
 #include "webradio/krWebradio.h"
 #include "audioplayer/krAudioPlayer.h"
@@ -12,10 +13,9 @@
 
 WiFiClient webradio_client;
 
-String webradio_read_stations();
+void webradio_read_stations();
 
-//uint8_t webradio_stationIndex = 0;
-//uint8_t webradio_numStations = 0;
+DynamicJsonDocument stations(2048);
 
 bool dataPanic = false;
 
@@ -24,20 +24,6 @@ bool bufferedEnough = false;
 bool webradio_isconnected()
 {
     return (webradio_client.connected() > 0);
-}
-
-uint8_t webradio_get_num_stations()
-{
-    DynamicJsonDocument stations(2048);
-    String fileContent = webradio_read_stations();
-
-    if(deserializeJson(stations, fileContent) != DeserializationError::Ok)
-    {
-        Serial.println("Error: deser error!");
-        return false;
-    }
-
-    return stations["stations"].size();
 }
 
 void webradio_open_url(char *host, char *path)
@@ -70,10 +56,58 @@ void webradio_stop()
     }
 }
 
-String webradio_read_stations()
+void webradio_read_stations()
 {
-//    DynamicJsonDocument stations(2048);
+    File file_stations = LittleFS.open("/settings/stations.yaml", "r");
+    
+    if(!file_stations)
+    {
+        Serial.print("Error: could not open stations.yaml");
+    }
 
+    String file_content;
+
+    while(file_stations.available())
+    {
+        String data = file_stations.readString();
+        file_content += data;
+        Serial.print(data);
+    }
+    Serial.print("\n(end)\n");
+
+    file_stations.close();
+
+    // Convert yaml to json
+    YAMLNode yaml_stations = YAMLNode::loadString(file_content.c_str());
+
+    String json_stations;
+
+    serializeYml(yaml_stations.getDocument(), json_stations, OUTPUT_JSON_PRETTY);
+
+    /*auto error = deserializeJson(settings, json_config);
+
+    if(error) {
+        Serial.printf("Unable to deserialize demo YAML to JsonObject: %s", error.c_str() );
+        return false;
+    }*/
+
+    if(deserializeJson(stations, json_stations) != DeserializationError::Ok)
+    {
+        Serial.println("Error: deser error!");
+        return;
+    }
+
+    Serial.println("Deserialization ok");
+
+    information.webRadio.station_count = stations.size();
+
+    Serial.printf("Stations size: %d", information.webRadio.station_count);
+
+    return;
+}
+
+//    DynamicJsonDocument stations(2048);
+/*
     File fileStations = LittleFS.open("/settings/stations.json", "r");
 
     if(!fileStations)
@@ -94,12 +128,12 @@ String webradio_read_stations()
 
     fileStations.close();
 
-    return fileContent;
-}
+    return fileContent;*/
+
 
 bool webradio_open_station(uint8_t index)
 {
-    DynamicJsonDocument stations(2048);
+   /* DynamicJsonDocument stations(2048);
 
     File fileStations = LittleFS.open("/settings/stations.json", "r");
 
@@ -126,10 +160,10 @@ bool webradio_open_station(uint8_t index)
         Serial.println("Error: deser error!");
         return false;
     }
-   
+   */
 
-    String stationName = stations["stations"][index]["name"];
-    String url = stations["stations"][index]["url"];
+    String stationName = stations[index]["name"];
+    String url = stations[index]["url"];
     Serial.println(stationName);
     Serial.println(url);
 

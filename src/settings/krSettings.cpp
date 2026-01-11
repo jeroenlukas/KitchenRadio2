@@ -55,7 +55,7 @@ bool config_read()
 }
 
 // Todo: deprecate
-bool settings_read_config()
+/*bool settings_read_config()
 {
     Serial.println("loading settings");
 
@@ -87,4 +87,4 @@ bool settings_read_config()
     Serial.println("Deserialization ok");
     return true;
 
-}
+}*/

@@ -10,9 +10,9 @@ bool webradio_buffered_enough(void);
 bool webradio_isconnected();
 void webradio_stop();
 bool webradio_open_station(uint8_t index);
-uint8_t webradio_get_num_stations();
 
-//extern uint8_t webradio_stationIndex;
-//extern uint8_t webradio_numStations;
+extern void webradio_read_stations();
+
+
 
 #endif

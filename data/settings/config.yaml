@@ -1,14 +1,14 @@
-devicename: "KitchenRadio!"
+devicename: "KitchenRadio-slaapkamer"
 location: "Slaapkamer"
 clock:
   timezone: "Europe/Amsterdam"
 audio:
   tonecontrol:
-    treble: 0
+    treble: 5
     treble_freq: 5
-    bass: 1
+    bass: 5
     bass_freq: 15
 display:
   homedisplay: "normal"
-  brightness_min: 1
-  brightness_max: 80
+  brightness_min: 20
+  brightness_max: 100

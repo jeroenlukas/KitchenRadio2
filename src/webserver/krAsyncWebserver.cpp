@@ -10,6 +10,7 @@
 #include "hmi/krCLI.h"
 #include "logger.h"
 #include "settings/krSettings.h"
+#include "webradio/krWebradio.h"
 
 // https://randomnerdtutorials.com/esp32-websocket-server-sensor/
 
@@ -106,6 +107,36 @@ void sendValuesConfig()
   ws.textAll(jsonString);
 }
 
+void sendValuesStations()
+{
+  String jsonString;
+  DynamicJsonDocument doc(1024);
+
+  // Get content from config file
+  File file_cat = LittleFS.open("/settings/stations.yaml", "r");
+
+  if(!file_cat)
+  {
+      Serial.print("Error: could not open file ");
+      return;
+  }
+
+  String file_content;
+
+  while(file_cat.available())
+  {
+      String data = file_cat.readString();
+      file_content += data;      
+  }
+
+  file_cat.close();
+
+  doc["stations_content"] = file_content;
+
+  serializeJson(doc, jsonString);
+  ws.textAll(jsonString);
+}
+
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
@@ -140,6 +171,10 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       else if(message == "getValuesConfig")
       {
         sendValuesConfig();
+      }
+      else if(message == "getValuesStations")
+      {
+        sendValuesStations();
       }
       else if(message.startsWith("{\"ledring"))
       {
@@ -220,6 +255,10 @@ void webserver_init() {
   server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(200, "text/html", buildHtmlPage("config.html"));
   });
+
+  server.on("/stations", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(200, "text/html", buildHtmlPage("stations.html"));
+  });
 /*
   server.on("/config", HTTP_POST, [](AsyncWebServerRequest *request) {
     AsyncWebParameter* p = request->getParam("config_content", true, false);
@@ -253,6 +292,39 @@ void webserver_init() {
 
       // Return to config file
       request->send(200, "text/html", buildHtmlPage("config.html"));
+    }
+    
+  });
+
+  server.on("/stations", HTTP_POST, [](AsyncWebServerRequest *request) {
+    // display params
+    size_t count = request->params();
+    for (size_t i = 0; i < count; i++) {
+      const AsyncWebParameter *p = request->getParam(i);
+      Serial.printf("PARAM[%u]: %s = %s\n", i, p->name().c_str(), p->value().c_str());
+    }
+
+    // get who param
+    String new_content;
+    if (request->hasParam("stations_content", true)) {
+      new_content = request->getParam("stations_content", true)->value();
+
+      // Write to settings.json
+      File file = LittleFS.open("/settings/stations.yaml", "w");
+      if(file.print(new_content))
+      {
+        log_debug("Stations saved");
+        file.close();
+      }
+      else log_debug("ERROR in saving stations");
+
+      // Reload stations
+      delayMicroseconds(500000);
+      
+      webradio_read_stations();
+
+      // Return to config file
+      request->send(200, "text/html", buildHtmlPage("stations.html"));
     }
     
   });

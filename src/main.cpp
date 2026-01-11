@@ -138,7 +138,9 @@ void setup()
   config_read();
 
   const char * deviceName = settings["devicename"];
+  if(deviceName == "") deviceName = "KitchenRadio2";
   log_boot("Device name: " + String(deviceName));
+
   const char * location = settings["location"];
   log_boot("Location: " + String(location));
 
@@ -148,7 +150,8 @@ void setup()
   log_boot("Init I2S");
   slavei2s_init();
  
-  information.webRadio.station_count = webradio_get_num_stations();
+  log_boot("Loading radio stations");
+  webradio_read_stations();  
   log_boot("Stations: " + String( information.webRadio.station_count));
   
   // WiFi setup
@@ -158,7 +161,7 @@ void setup()
   WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
   WiFi.setScanMethod(WIFI_ALL_CHANNEL_SCAN);
   WiFi.setSortMethod(WIFI_CONNECT_AP_BY_SIGNAL);
-  WiFi.setHostname("KitchenRadio2");
+  WiFi.setHostname(deviceName);
   WiFi.disconnect();
 
   WiFi.begin(CONF_WIFI_SSID, CONF_WIFI_PASSWORD);

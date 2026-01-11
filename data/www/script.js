@@ -28,6 +28,11 @@ function getValuesConfig()
     websocket.send("getValuesConfig");
 }
 
+function getValuesStations()
+{
+    websocket.send("getValuesStations");
+}
+
 function initWebSocket() {
     console.log('Trying to open a WebSocket connection…');
     websocket = new WebSocket(gateway);
@@ -57,6 +62,14 @@ function onOpen(event) {
         // Config (once)
         getValuesConfig();
     }
+
+    else if(window.location.pathname == "/stations")
+    {
+        // Stations (once)
+        getValuesStations();
+    }
+
+    
 
     
 }
