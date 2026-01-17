@@ -294,19 +294,32 @@ void display_draw_menu_lamp()
 void display_draw_menu_system()
 {
   display_draw_menu_footer(MITEM_SYSTEM_MIN, MITEM_SYSTEM_MAX);
-
-  u8g2.setFont(FONT_M);
-  u8g2.drawStr(10, 10, information.device_name.c_str());
+  
   u8g2.setFont(FONT_S);
 
   switch(menuitem)
   {
     case MITEM_SYSTEM_INFO:
+      u8g2.drawStr(10, 12, "Name: " + information.device_name.c_str());
       u8g2.drawStr(10, 22, "IP: ");         u8g2.drawStr(70, 22, information.system.IPAddress.c_str());
       u8g2.drawStr(10, 32, "RSSI:");        u8g2.drawStr(70, 32, (String(information.system.wifiRSSI) + " dBm").c_str());      
-      u8g2.drawStr(10, 42, "Uptime:");      u8g2.drawStr(70, 42, convertTime(information.system.uptimeSeconds).c_str());
+      u8g2.drawStr(10, 42, "BT RSSI:");     u8g2.drawStr(70, 32, (String(information.system.bluetoothRSSI) + " dBm").c_str());      
+      
+      u8g2.drawStr(150, 12, "Uptime:");     u8g2.drawStr(200, 12, convertTime(information.system.uptimeSeconds).c_str());
       u8g2.drawStr(150, 22, "Amb.light:");  u8g2.drawStr(200, 22, (String(information.system.ldr) + "%").c_str());
-      u8g2.drawStr(150, 32, "Wind:");       u8g2.drawStr(200, 32, (String(information.weather.windSpeedKmh) + "kmh").c_str());
+      
+      break;
+    case MITEM_SYSTEM_WEATHER:
+      u8g2.drawStr(10, 12, "Wind:");       u8g2.drawStr(70, 12, (String(information.weather.windSpeedKmh) + "km/h").c_str());
+      u8g2.drawStr(10, 22, "Temp:");       u8g2.drawStr(70, 22, (String(information.weather.temperature) + " 'C").c_str());
+      u8g2.drawStr(10, 32, "Feels like:"); u8g2.drawStr(70, 32, (String(information.weather.temperature_feelslike) + " 'C").c_str());
+      u8g2.drawStr(10, 42, "Humidity:");   u8g2.drawStr(70, 42, (String(information.weather.humidity) + "%").c_str());
+
+      u8g2.drawStr(150, 12, "Pressure:");  u8g2.drawStr(200, 12, (String(information.weather.pressure) + " hPa").c_str());
+      u8g2.drawStr(150, 22, "Sunrise:");   u8g2.drawStr(200, 22, (String(information.weather.sunrise_str)).c_str());
+      u8g2.drawStr(150, 32, "Sunset:");    u8g2.drawStr(200, 32, (String(information.weather.sunset_str)).c_str());
+
+      
       break;
     case MITEM_SYSTEM_BASS:
       u8g2.drawStr(10, 30, "Bass:");        u8g2.drawStr(80, 30, String(information.audioPlayer.bass).c_str());

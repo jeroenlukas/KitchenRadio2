@@ -15,6 +15,7 @@ class Information {
         {
             uint32_t uptimeSeconds;
             int8_t wifiRSSI;
+            int8_t bluetoothRSSI;
             String IPAddress;
             uint8_t ldr;
         };
@@ -61,7 +62,15 @@ class Information {
             double windSpeedKmh;
             int windSpeedBft;
             int stateCode;
+            int pressure;
+            float temperature_feelslike;
+            int humidity;
+            time_t sunrise;
+            time_t sunset;
             String icon;
+            String sunrise_str;
+            String sunset_str;
+
         };
         
 

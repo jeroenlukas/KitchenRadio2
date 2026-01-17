@@ -10,11 +10,11 @@
 #define CONF_AUDIO_MIN_BYTES    (256 * 1024)
 
 // Return to home screen after this many ms of no user input
-#define CONF_MENU_RETURN_HOME_MS    10000
+#define CONF_MENU_RETURN_HOME_MS    15000
 
 // Maps LDR brightness to the display brightness
-#define CONF_DISPLAY_AUTO_BRIGHTNESS_MIN    17
-#define CONF_DISPLAY_AUTO_BRIGHTNESS_MAX    80
+//#define CONF_DISPLAY_AUTO_BRIGHTNESS_MIN    17
+//#define CONF_DISPLAY_AUTO_BRIGHTNESS_MAX    80
 
 // Enables 'night mode' - front LEDs are off when LDR is below this value
 #define CONF_LEDS_NIGHT_MODE                1
@@ -67,9 +67,10 @@
 
 #define MITEM_SYSTEM_MIN        301
 #define MITEM_SYSTEM_INFO       301
-#define MITEM_SYSTEM_BASS       302
-#define MITEM_SYSTEM_TREBLE     303
-#define MITEM_SYSTEM_MAX        303
+#define MITEM_SYSTEM_WEATHER    302
+#define MITEM_SYSTEM_BASS       303
+#define MITEM_SYSTEM_TREBLE     304
+#define MITEM_SYSTEM_MAX        304
 
 
 

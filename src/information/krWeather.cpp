@@ -1,7 +1,9 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <ezTime.h>
 #include "ArduinoJson.h"
 #include "information/krInfo.h"
+#include "information/krTime.h"
 #include "configuration/config.h"
 #include "logger.h"
 
@@ -36,16 +38,27 @@ bool weather_retrieve()
         DynamicJsonDocument doc(1024);
 
         deserializeJson(doc, payload);
-        String weather_type = doc["weather"][0]["description"];
         Serial.print(payload);
+
+        String weather_type = doc["weather"][0]["description"];        
         information.weather.stateShort = weather_type;
         information.weather.temperature = doc["main"]["temp"];        
         information.weather.windSpeedKmh = ((double)(doc["wind"]["speed"])) * 3.6;
         information.weather.windSpeedBft = weather_windkmh_to_beaufort(information.weather.windSpeedKmh);
         information.weather.stateCode = (int)(doc["weather"][0]["id"]);
+        information.weather.temperature_feelslike = doc["main"]["feels_like"];
+        information.weather.pressure = doc["main"]["pressure"];
+        information.weather.humidity = doc["main"]["humidity"];
+        
+        information.weather.sunrise = doc["sys"]["sunrise"];
+        information.weather.sunset = doc["sys"]["sunset"];                
+        information.weather.sunrise_str = localTimezone.dateTime(information.weather.sunrise, ezLocalOrUTC_t::UTC_TIME, "H:i");        
+        information.weather.sunset_str = localTimezone.dateTime(information.weather.sunset, ezLocalOrUTC_t::UTC_TIME, "H:i");
+
+
         String weather_icon = doc["weather"][0]["icon"];
         information.weather.icon = weather_icon;
-        //information.weather.windSpeedBft = doc["main"]
+        
 
         Serial.println("\nWeather icon:" + information.weather.icon);
         

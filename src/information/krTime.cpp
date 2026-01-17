@@ -8,12 +8,12 @@
 
 
 Timezone localTimezone;
+Timezone utcTimezone;
 
 void time_init()
 {
     const char * timeZone = settings["clock"]["timezone"];
-    localTimezone.setLocation(timeZone);
-    
+    localTimezone.setLocation(timeZone);        
 }
 
 void time_waitForSync()

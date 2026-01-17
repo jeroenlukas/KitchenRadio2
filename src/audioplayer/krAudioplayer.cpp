@@ -90,7 +90,7 @@ void audioplayer_set_soundmode(uint8_t soundMode)
             break;
 
         case SOUNDMODE_WEBRADIO:
-            webradio_open_station(0);
+            webradio_open_station(information.webRadio.station_index);
             front_led_on(MCP_LED_WEBRADIO);
             log_debug("Radio mode");
             audioplayer_set_mute(false);
