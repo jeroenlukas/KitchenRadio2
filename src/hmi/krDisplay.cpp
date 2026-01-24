@@ -181,7 +181,7 @@ void display_draw_menu_home()
             case SOUNDMODE_OFF:            
               break;
             case SOUNDMODE_WEBRADIO:
-              u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_radio_width, xbm_radio_height, xbm_radio_bits);
+              u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-15, xbm_radio_width, xbm_radio_height, xbm_radio_bits);
               
               // Draw buffer fill percentage, station index + count
               u8g2.setFont(FONT_S);
@@ -189,7 +189,7 @@ void display_draw_menu_home()
               u8g2.drawStr(POSX_AUDIO -20, POSY_AUDIO+1, (String(information.webRadio.buffer_pct) + "%").c_str() );
 
               // Draw station name in clipwindow
-              u8g2.setFont(u8g2_font_lastapprenticebold_te);
+              u8g2.setFont(FONT_AUDIO);
               u8g2.setClipWindow(POSX_AUDIO, 43, 224, 64);
               display_audio_title_width = u8g2.drawStr(POSX_AUDIO + display_audio_title_scroll_offset, POSY_AUDIO, information.webRadio.station_name.c_str());
               u8g2.setMaxClipWindow();
@@ -198,29 +198,32 @@ void display_draw_menu_home()
               u8g2.drawXBM(POSX_AUDIO_ICON, POSY_AUDIO_ICON-16, xbm_bluetooth_width, xbm_bluetooth_height, xbm_bluetooth_bits);
 
               // Draw bluetooth title in clipwindow
-              u8g2.setFont(u8g2_font_lastapprenticebold_te);
+              u8g2.setFont(FONT_AUDIO);
               u8g2.setClipWindow(POSX_AUDIO, 43, 224, 64);              
-              display_audio_title_width = u8g2.drawStr(POSX_AUDIO + display_audio_title_scroll_offset, POSY_AUDIO, String(information.audioPlayer.bluetoothArtist + " - " + information.audioPlayer.bluetoothTitle).c_str());
+              if(information.audioPlayer.bluetoothArtist != "")
+                display_audio_title_width = u8g2.drawStr(POSX_AUDIO + display_audio_title_scroll_offset, POSY_AUDIO, String(information.audioPlayer.bluetoothArtist + " - " + information.audioPlayer.bluetoothTitle).c_str());
+              else
+                display_audio_title_width = u8g2.drawStr(POSX_AUDIO + display_audio_title_scroll_offset, POSY_AUDIO, String(information.audioPlayer.bluetoothConnectionStateStr).c_str());
               u8g2.setMaxClipWindow();
               
               // Draw audio state icon
-              u8g2.setFont(u8g2_font_open_iconic_all_2x_t);
+              u8g2.setFont(u8g2_font_twelvedings_t_all);
               switch(information.audioPlayer.bluetoothMode)
               {
                 case KCX_OFF:                  
-                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO+2, 285);
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 0);
                   break;
                 case KCX_NOTCONNECTED:
-                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO+2, 285);
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 63);
                   break;
                 case KCX_PAUSED:
-                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO+2, 210);
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 69);
                   break;
                 case KCX_PLAYING:
-                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO+2, 211);
+                  u8g2.drawGlyph(POSX_AUDIO - 20, POSY_AUDIO, 68);
                   break;
                 case KCX_UNKNOWN:            
-                  u8g2.drawStr(POSX_AUDIO - 20, POSY_AUDIO+2, "(?)");
+                  u8g2.drawStr(POSX_AUDIO - 20, POSY_AUDIO, "?");
                   break;
               }
               break;
@@ -232,7 +235,10 @@ void display_draw_menu_home()
 
           // Volume          
           u8g2.setFont(u8g2_font_open_iconic_all_1x_t);
-          u8g2.drawGlyph(228, POSY_AUDIO, 277);
+          if(information.audioPlayer.mute)
+            u8g2.drawGlyph(228, POSY_AUDIO, 279);
+          else
+            u8g2.drawGlyph(228, POSY_AUDIO, 277);
           u8g2.setFont(FONT_S);
           u8g2.drawStr(238, POSY_AUDIO-1, (String(information.audioPlayer.volume) + "%").c_str());
 }
@@ -300,10 +306,10 @@ void display_draw_menu_system()
   switch(menuitem)
   {
     case MITEM_SYSTEM_INFO:
-      u8g2.drawStr(10, 12, "Name: " + information.device_name.c_str());
+      u8g2.drawStr(10, 12, String(information.device_name).c_str());
       u8g2.drawStr(10, 22, "IP: ");         u8g2.drawStr(70, 22, information.system.IPAddress.c_str());
       u8g2.drawStr(10, 32, "RSSI:");        u8g2.drawStr(70, 32, (String(information.system.wifiRSSI) + " dBm").c_str());      
-      u8g2.drawStr(10, 42, "BT RSSI:");     u8g2.drawStr(70, 32, (String(information.system.bluetoothRSSI) + " dBm").c_str());      
+      u8g2.drawStr(10, 42, "BT RSSI:");     u8g2.drawStr(70, 42, (String(information.audioPlayer.bluetoothRSSI) + " dBm").c_str());      
       
       u8g2.drawStr(150, 12, "Uptime:");     u8g2.drawStr(200, 12, convertTime(information.system.uptimeSeconds).c_str());
       u8g2.drawStr(150, 22, "Amb.light:");  u8g2.drawStr(200, 22, (String(information.system.ldr) + "%").c_str());

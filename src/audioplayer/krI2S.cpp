@@ -122,6 +122,15 @@ void slavei2s_command_parse(String command)
   {
     information.audioPlayer.bluetoothArtist = command.substring(10);
   }
+
+  else if(command.startsWith("AT+CONNSTATE"))
+  {
+    information.audioPlayer.bluetoothConnectionStateStr = command.substring(13);
+  }
+  else if(command.startsWith("AT+RSSI"))
+  {
+    information.audioPlayer.bluetoothRSSI = command.substring(8).toInt();
+  }
 }
 
 // Read data from I2S DMA buffer and send it to the VS1053.

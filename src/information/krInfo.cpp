@@ -7,7 +7,7 @@ void krInfoInitialize(void)
 {
     information.timeShort = "00:00";
     information.dateMid = "?";
-
+    
     information.system.uptimeSeconds = 0;
     information.system.wifiRSSI = 0;
 

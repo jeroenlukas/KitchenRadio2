@@ -84,13 +84,6 @@ void webradio_read_stations()
 
     serializeYml(yaml_stations.getDocument(), json_stations, OUTPUT_JSON_PRETTY);
 
-    /*auto error = deserializeJson(settings, json_config);
-
-    if(error) {
-        Serial.printf("Unable to deserialize demo YAML to JsonObject: %s", error.c_str() );
-        return false;
-    }*/
-
     if(deserializeJson(stations, json_stations) != DeserializationError::Ok)
     {
         Serial.println("Error: deser error!");
@@ -106,62 +99,8 @@ void webradio_read_stations()
     return;
 }
 
-//    DynamicJsonDocument stations(2048);
-/*
-    File fileStations = LittleFS.open("/settings/stations.json", "r");
-
-    if(!fileStations)
-    {
-        Serial.print("Error: could not open stations.json");
-        return "";
-    }
-
-    String fileContent;
-
-    while(fileStations.available())
-    {
-        String data = fileStations.readString();
-        fileContent += data;
-//        Serial.print(data);
-    }
-    Serial.print("\n(end)\n");
-
-    fileStations.close();
-
-    return fileContent;*/
-
-
 bool webradio_open_station(uint8_t index)
 {
-   /* DynamicJsonDocument stations(2048);
-
-    File fileStations = LittleFS.open("/settings/stations.json", "r");
-
-    if(!fileStations)
-    {
-        Serial.print("Error: could not open stations.json");
-        return false;
-    }
-
-    String fileContent;
-
-    while(fileStations.available())
-    {
-        String data = fileStations.readString();
-        fileContent += data;
-//        Serial.print(data);
-    }
-    Serial.print("\n(end)\n");
-
-    fileStations.close();
-
-    if(deserializeJson(stations, fileContent) != DeserializationError::Ok)
-    {
-        Serial.println("Error: deser error!");
-        return false;
-    }
-   */
-
     String stationName = stations[index]["name"];
     String url = stations[index]["url"];
     Serial.println(stationName);
@@ -225,33 +164,7 @@ void webradio_handle_stream(void)
                 }
             }
         }
-        else
-        {
-            // There will be thousands of this message. Only for debugging.
-            //Serial.println("Circ buff full.");
-        }
     }
-/*
-    if (circBuffer.available())
-    {
-        // Does the VS1053 want any more data (yet)?
-        if (player.data_request())
-        {
-            {
-                // Read the data from the circuluar (ring) buffer
-                int bytesRead = circBuffer.read((char *)mp3buff, 32);
-
-                // If we didn't read the full 32 bytes, that's a worry
-                if (bytesRead != 32)
-                {
-                    Serial.printf("Only read %d bytes from  circular buffer\n", bytesRead);
-                }
-
-                // Actually send the data to the VS1053
-                player.playChunk(mp3buff, bytesRead);
-            }
-        }
-    }*/
     
     return;
 }

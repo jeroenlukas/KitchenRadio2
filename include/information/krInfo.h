@@ -15,7 +15,7 @@ class Information {
         {
             uint32_t uptimeSeconds;
             int8_t wifiRSSI;
-            int8_t bluetoothRSSI;
+            
             String IPAddress;
             uint8_t ldr;
         };
@@ -26,6 +26,7 @@ class Information {
             int sampleRate;
 
             int volume;
+            bool mute;
 
             int bass;
             int treble;
@@ -34,6 +35,8 @@ class Information {
 
             String bluetoothTitle;
             String bluetoothArtist;
+            String bluetoothConnectionStateStr;
+            int8_t bluetoothRSSI;
         };
 
         struct Lamp

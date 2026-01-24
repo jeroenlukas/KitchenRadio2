@@ -22,9 +22,18 @@ cbuf_ps circBuffer(1024);
 
 char readBuffer[4096] __attribute__((aligned(4)));
 
+// Set by system, when audiomode is set to 'off'
+void audioplayer_pa_mute(bool mute)
+{
+    // Toggle power amp mute pin
+    digitalWrite(PIN_PA_MUTE, !mute);
+}
+
+// Set mute by user
 void audioplayer_set_mute(bool mute)
 {
-    digitalWrite(PIN_PA_MUTE, !mute);
+    information.audioPlayer.mute = mute;
+    audioplayer_pa_mute(mute);
 }
 
 void audioplayer_init()
@@ -32,19 +41,12 @@ void audioplayer_init()
     pinMode(PIN_PA_MUTE, OUTPUT);
     
     player.begin();
-    if(player.isChipConnected())
-    {
-      //u8g2log.print("VS1053 found\n");
-    }
-    else
-    {
-    //  u8g2log.print("ERROR: VS1053 not found\n");
-    }
+    
     player.loadDefaultVs1053Patches();
     player.switchToMp3Mode(); // optional, some boards require this
     player.setVolume(80);
 
-    audioplayer_set_mute(true);
+    audioplayer_pa_mute(true);
 }
 
 void audioplayer_setvolume(uint8_t volume)
@@ -57,6 +59,8 @@ void audioplayer_setvolume(uint8_t volume)
     
     player.setVolume(vol_log);
 }
+
+
 
 void audioplayer_set_soundmode(uint8_t soundMode)
 {
@@ -75,6 +79,9 @@ void audioplayer_set_soundmode(uint8_t soundMode)
 
         case SOUNDMODE_BLUETOOTH:            
             slavei2s_send("AT+END");
+            // Clear audio info
+            information.audioPlayer.bluetoothArtist = "";
+            information.audioPlayer.bluetoothTitle = "";
             break;
     }
 
@@ -86,14 +93,14 @@ void audioplayer_set_soundmode(uint8_t soundMode)
     {
         case SOUNDMODE_OFF:
             log_debug("Sound off");
-            audioplayer_set_mute(true);
+            audioplayer_pa_mute(true);
             break;
 
         case SOUNDMODE_WEBRADIO:
             webradio_open_station(information.webRadio.station_index);
             front_led_on(MCP_LED_WEBRADIO);
             log_debug("Radio mode");
-            audioplayer_set_mute(false);
+            audioplayer_pa_mute(false);
             break;
 
         case SOUNDMODE_BLUETOOTH:
@@ -104,7 +111,7 @@ void audioplayer_set_soundmode(uint8_t soundMode)
             slavei2s_send("AT+START");
             slavei2s_sendheader();
 
-            audioplayer_set_mute(false);
+            audioplayer_pa_mute(false);
             
             break;
     }

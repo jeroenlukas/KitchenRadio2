@@ -37,6 +37,7 @@
 #define FONT_DEBUGLOG           u8g2_font_4x6_tf
 #define FONT_S                  u8g2_font_smallsimple_tr //u8g2_font_simple1_tf=h13w9
 #define FONT_M                  u8g2_font_minicute_tr
+#define FONT_AUDIO              u8g2_font_helvB08_tf
 
 // Widget positions
 #define POSX_CLOCK              186
@@ -45,7 +46,7 @@
 #define POSX_AUDIO_ICON         2
 #define POSY_AUDIO_ICON         63
 #define POSX_AUDIO              42
-#define POSY_AUDIO              62
+#define POSY_AUDIO              61
 
 // LED ring
 #define LED_RING_NUM_LEDS       24

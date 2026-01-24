@@ -389,6 +389,7 @@ void loop()
   {
     flags.frontPanel.encoder1ButtonPressed = false;
     // TODO implement mute function
+    audioplayer_set_mute(!information.audioPlayer.mute);
   }
 
   if (flags.frontPanel.encoder2ButtonPressed)
