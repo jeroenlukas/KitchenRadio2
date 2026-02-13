@@ -10,7 +10,7 @@ extern VS1053 player;
 
 extern cbuf_ps circBuffer;
 
-extern uint8_t audioplayer_soundMode;
+//extern uint8_t audioplayer_soundMode;
 
 extern char readBuffer[4096] __attribute__((aligned(4)));
 

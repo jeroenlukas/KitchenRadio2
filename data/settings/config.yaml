@@ -1,5 +1,5 @@
-devicename: "KitchenRadio-slaapkamer"
-location: "Slaapkamer"
+devicename: "KitchenRadio-keuken"
+location: "Keuken"
 clock:
   timezone: "Europe/Amsterdam"
 audio:
@@ -10,5 +10,5 @@ audio:
     bass_freq: 15
 display:
   homedisplay: "normal"
-  brightness_min: 20
+  brightness_min: 10
   brightness_max: 100

@@ -33,7 +33,7 @@ void display_draw_menu_system();
 void display_set_brightness(uint8_t brightness);
 void display_set_brightness_auto();
 void display_update_scroll_offset();
-
+void display_reset_scroll();
 
 U8G2_SSD1322_NHD_256X64_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ HSPI_CS, /* dc=*/ HSPI_DC, /* reset=*/ 9);	// Enable U8G2_16BIT in u8g2.h
 
@@ -52,6 +52,12 @@ String convertTime(uint32_t timeInSeconds)
   res.concat(String(seconds) + "s");
   //String res = String(days) + "d" + String(hours) + "h" + String(minutes) + "m" + String(seconds) + "s";
   return res;
+}
+
+void display_reset_scroll()
+{
+  display_audio_title_scroll_offset= 0;
+  display_audio_title_scroll_dir=0;
 }
 
 void display_update_scroll_offset()
@@ -176,7 +182,7 @@ void display_draw_menu_home()
           u8g2.drawLine(0, 44, 256, 44);
 
           // Sound mode / Station / Bluetooth audio title/artist
-          switch(audioplayer_soundMode)
+          switch(information.audioPlayer.soundMode)
           {
             case SOUNDMODE_OFF:            
               break;
@@ -309,8 +315,12 @@ void display_draw_menu_system()
       u8g2.drawStr(10, 12, String(information.device_name).c_str());
       u8g2.drawStr(10, 22, "IP: ");         u8g2.drawStr(70, 22, information.system.IPAddress.c_str());
       u8g2.drawStr(10, 32, "RSSI:");        u8g2.drawStr(70, 32, (String(information.system.wifiRSSI) + " dBm").c_str());      
-      u8g2.drawStr(10, 42, "BT RSSI:");     u8g2.drawStr(70, 42, (String(information.audioPlayer.bluetoothRSSI) + " dBm").c_str());      
-      
+      u8g2.drawStr(10, 42, "BT RSSI:");     
+      if(information.audioPlayer.soundMode == SOUNDMODE_BLUETOOTH)
+        u8g2.drawStr(70, 42, (String(information.audioPlayer.bluetoothRSSI) + " dBm").c_str());      
+      else
+        u8g2.drawStr(70, 42, "N/A");      
+
       u8g2.drawStr(150, 12, "Uptime:");     u8g2.drawStr(200, 12, convertTime(information.system.uptimeSeconds).c_str());
       u8g2.drawStr(150, 22, "Amb.light:");  u8g2.drawStr(200, 22, (String(information.system.ldr) + "%").c_str());
       

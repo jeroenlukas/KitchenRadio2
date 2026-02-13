@@ -16,7 +16,7 @@ VS1053 player(VS1053_CS, VS1053_DCS, VS1053_DREQ);
 
 uint8_t mp3buff[64];
 
-uint8_t audioplayer_soundMode = SOUNDMODE_OFF;
+//uint8_t audioplayer_soundMode = SOUNDMODE_OFF;
 
 cbuf_ps circBuffer(1024); 
 
@@ -68,7 +68,7 @@ void audioplayer_set_soundmode(uint8_t soundMode)
     front_led_off(MCP_LED_BLUETOOTH);
 
     // Current soundmode
-    switch(audioplayer_soundMode)
+    switch(information.audioPlayer.soundMode)
     {
         case SOUNDMODE_OFF:
             break;
@@ -116,7 +116,7 @@ void audioplayer_set_soundmode(uint8_t soundMode)
             break;
     }
 
-    audioplayer_soundMode = soundMode;
+    information.audioPlayer.soundMode = soundMode;
    
 }
 
@@ -124,7 +124,7 @@ void audioplayer_set_soundmode(uint8_t soundMode)
 // Only used for webradio
 void IRAM_ATTR audioplayer_feedbuffer()
 {
-    if(audioplayer_soundMode != SOUNDMODE_WEBRADIO)
+    if(information.audioPlayer.soundMode != SOUNDMODE_WEBRADIO)
         return;
 
     if(webradio_buffered_enough() == false)

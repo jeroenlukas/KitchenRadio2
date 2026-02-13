@@ -396,7 +396,7 @@ void loop()
   {
     flags.frontPanel.encoder2ButtonPressed = false;
 
-    switch(audioplayer_soundMode)
+    switch(information.audioPlayer.soundMode)
     {
       case SOUNDMODE_BLUETOOTH:
         slavei2s_playpause();
@@ -521,7 +521,7 @@ if(flags.frontPanel.encoder1TurnRight)
     switch(menu)
     {
       case MENU_HOME:
-        if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+        if(information.audioPlayer.soundMode == SOUNDMODE_WEBRADIO)
         {
           if(information.webRadio.station_index > 0)
           {
@@ -545,7 +545,7 @@ if(flags.frontPanel.encoder1TurnRight)
     switch(menu)
     {
       case MENU_HOME:
-        if(audioplayer_soundMode == SOUNDMODE_WEBRADIO)
+        if(information.audioPlayer.soundMode == SOUNDMODE_WEBRADIO)
         {
           if(information.webRadio.station_index < information.webRadio.station_count - 1)
           {

@@ -21,6 +21,8 @@ class Information {
         };
         struct AudioPlayer
         {
+            uint8_t soundMode;
+
             int channels;
             int bitRate;
             int sampleRate;

@@ -4,6 +4,8 @@
   url: "icecast.omroep.nl/radio2-bb-mp3"
 - name: "NPO 3FM"
   url: "icecast.omroep.nl/3fm-bb-mp3"
+- name: "NPO Klassiek"
+  url: "icecast.omroep.nl/radio4-bb-mp3"
 - name: "BNR Nieuwsradio"
   url: "25683.live.streamtheworld.com/BNR_NIEUWSRADIOAAC.aac?dist=other"
 - name: "Radio Veronica"

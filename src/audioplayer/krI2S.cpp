@@ -8,6 +8,7 @@
 #include "audioplayer/krI2S.h"
 #include "audioplayer/krAudioplayer.h"
 #include "information/krInfo.h"
+#include "hmi/krDisplay.h"
 
 
 // Source:
@@ -117,10 +118,12 @@ void slavei2s_command_parse(String command)
   else if(command.startsWith("AT+TITLE"))
   {
     information.audioPlayer.bluetoothTitle = command.substring(9);
+    display_reset_scroll();
   }
   else if(command.startsWith("AT+ARTIST"))
   {
     information.audioPlayer.bluetoothArtist = command.substring(10);
+    display_reset_scroll();
   }
 
   else if(command.startsWith("AT+CONNSTATE"))
@@ -138,7 +141,7 @@ void slavei2s_command_parse(String command)
 void slavei2s_handle()
 {
   size_t bytesIn = 0;
-  if(audioplayer_soundMode == SOUNDMODE_BLUETOOTH)
+  if(information.audioPlayer.soundMode == SOUNDMODE_BLUETOOTH)
   {
     esp_err_t result = i2s_read(I2S_PORT, &sBuffer, I2S_BUFFERLEN, &bytesIn, 10);// portMAX_DELAY);
 

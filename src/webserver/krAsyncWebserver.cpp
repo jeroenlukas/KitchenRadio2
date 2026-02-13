@@ -11,6 +11,7 @@
 #include "logger.h"
 #include "settings/krSettings.h"
 #include "webradio/krWebradio.h"
+#include "audioplayer/krAudioplayer.h"
 
 // https://randomnerdtutorials.com/esp32-websocket-server-sensor/
 
@@ -154,6 +155,26 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       else if(message == "buttonWebradioPressed")
       {
         flags.frontPanel.buttonRadioPressed = true;
+      }
+      else if(message == "buttonBluetoothPressed")
+      {
+        flags.frontPanel.buttonBluetoothPressed = true;
+      }
+      else if(message == "buttonAudioPrevPressed")
+      {
+        flags.frontPanel.encoder2TurnLeft = true;
+      }
+      else if(message == "buttonAudioNextPressed")
+      {
+        flags.frontPanel.encoder2TurnRight = true;
+      }
+      else if(message.startsWith("{\"volume"))
+      {
+        DynamicJsonDocument doc(1024);
+
+        deserializeJson(doc, message);
+
+        audioplayer_setvolume(doc["volume"]);
       }
 
       else if(message == "getValuesAudio")

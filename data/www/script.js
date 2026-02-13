@@ -91,6 +91,15 @@ function initButtons() {
 
     eleButtonConsole = document.getElementById('button_console');
     if(eleButtonConsole != null) eleButtonConsole.addEventListener('click', buttonConsolePressed);
+
+    eleSliderVolume = document.getElementById('slider_volume');
+    if(eleSliderVolume != null) eleSliderVolume.addEventListener('input', sliderVolumeChanged);
+
+    eleButtonAudioPrev = document.getElementById('button_audio_prev');
+    if(eleButtonAudioPrev != null) eleButtonAudioPrev.addEventListener('click', buttonAudioPrevPressed);
+
+    eleButtonAudioNext = document.getElementById('button_audio_next');
+    if(eleButtonAudioNext != null) eleButtonAudioNext.addEventListener('click', buttonAudioNextPressed);
 }
 
 function colorPickerChanged(picker)
@@ -109,14 +118,27 @@ function buttonWebradioPressed(){
     websocket.send('buttonWebradioPressed');
 }
 
-function buttoBluetoothPressed(){
+function buttonBluetoothPressed(){
     websocket.send('buttonBluetoothPressed');
+}
+
+function buttonAudioPrevPressed(){
+    websocket.send('buttonAudioPrevPressed');
+}
+
+function buttonAudioNextPressed(){
+    websocket.send('buttonAudioNextPressed');
 }
 
 function buttonConsolePressed()
 {    
     console.log('{"console":{"command": "' + document.getElementById('text_console').value + '"}}');
     websocket.send('{"console":{"command": "' + document.getElementById('text_console').value + '"}}');
+}
+
+function sliderVolumeChanged()
+{
+    websocket.send('{\"volume\":'+document.getElementById('slider_volume').value + '}');
 }
 
 // Function that receives the message from the ESP32 with the readings
