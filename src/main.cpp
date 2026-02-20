@@ -95,7 +95,10 @@ void setup()
   Serial.print("KitchenRadio 2");
   delay(100);  
 
+  info_init();
+
   cli_init();
+
 
   hspi = new SPIClass(HSPI);
   hspi->begin(HSPI_SCK, HSPI_MISO, HSPI_MOSI, HSPI_CS);  
@@ -176,7 +179,7 @@ void setup()
   
   information.system.IPAddress = WiFi.localIP().toString(); 
 
-  log_boot("\nConnected! (" + (information.system.IPAddress) + ")");
+  log_boot("Connected! (" + (information.system.IPAddress) + ")");
   log_boot("RSSI: " + String(WiFi.RSSI()) + " dBm");
 
   log_boot("Init led ring");
@@ -223,6 +226,8 @@ void setup()
   // Turn off leds
   front_led_off(MCP_LED_WEBRADIO);
   front_led_off(MCP_LED_BLUETOOTH);
+  front_led_off(MCP_LED_LAMP);
+  front_led_off(MCP_LED_ALARM);
 
   // Tickers
   ticker_10ms_ref.attach(0.01, ticker_10ms);

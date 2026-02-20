@@ -93,7 +93,7 @@ function initButtons() {
     if(eleButtonConsole != null) eleButtonConsole.addEventListener('click', buttonConsolePressed);
 
     eleSliderVolume = document.getElementById('slider_volume');
-    if(eleSliderVolume != null) eleSliderVolume.addEventListener('input', sliderVolumeChanged);
+    if(eleSliderVolume != null) eleSliderVolume.addEventListener('click', sliderVolumeChanged);
 
     eleButtonAudioPrev = document.getElementById('button_audio_prev');
     if(eleButtonAudioPrev != null) eleButtonAudioPrev.addEventListener('click', buttonAudioPrevPressed);

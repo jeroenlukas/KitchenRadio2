@@ -136,44 +136,74 @@ void front_encoders_read()
     }
 }
 
+// Read buttons. Should be read every 100ms
 void front_buttons_read()
 {
-    //static bool mcp_inta_prev;
     static uint8_t lastbutton = 0xFF;
 
     int mcp_inta = !digitalRead(MCP_INTA); // Interrupt for encoder switches
     int mcp_intb = !digitalRead(MCP_INTB); // Interrupt
     
     // Handle long press stuff
-    /*if(lastpressdown > 0)
+    if((lastpressdown > 0) && (lastbutton != 0xFF))
     {
         if((millis() - lastpressdown) > 1000)
         {
-             Serial.println("LONG press " + String(lastbutton));
-             lastpressdown = 0;
-             //return;
-        }
-    }*/
+            //Serial.println("LONG press " + String(lastbutton));
+            lastpressdown = 0;
 
-    if(mcp_inta || mcp_intb)
-    {
-        
-        uint8_t button = mcp.getLastInterruptPin();
-        // Value: 1 = pressed
-        uint16_t value = !((mcp.getCapturedInterrupt() >> button) & 1);
-        Serial.println("Btn: " + String(button) + " Value: " + String(value));
-
-
-
-        if(button == lastbutton) 
-        {
-            if(!value) // button was released
-            {
-                /*if((millis() - lastpressdown) > 1000)
+            switch(lastbutton)
                 {
-                    //Serial.println("LONG press");
-                }*/
-                Serial.println("Short press " + String(button));
+                    case MCP_BTN_OFF:
+                        flags.frontPanel.buttonOffLongPressed = true;
+                        break;
+                    case MCP_BTN_WEBRADIO:
+                        flags.frontPanel.buttonRadioLongPressed = true;
+                        break;
+                    case MCP_BTN_BLUETOOTH:
+                        flags.frontPanel.buttonBluetoothLongPressed = true;
+                        break;
+                    case MCP_BTN_SYSTEM:
+                        flags.frontPanel.buttonSystemLongPressed = true;
+                        break;
+                    case MCP_BTN_ALARM:
+                        flags.frontPanel.buttonAlarmLongPressed = true;
+                        break;
+                    case MCP_BTN_LAMP:
+                        flags.frontPanel.buttonLampLongPressed = true;
+                        break;    
+                    case MCP_BTN_ENC1:
+                        //flags.frontPanel.encoder1ButtonLongPressed = true;
+                        break;
+                    case MCP_BTN_ENC2:
+                        //flags.frontPanel.encoder2ButtonLongPressed = true;
+                        break;                
+                    default:
+                        break;
+
+                }
+
+             lastbutton = 0xff;
+        }
+    }
+
+    if(mcp_inta || mcp_intb) // Button was pushed or released
+    {        
+        uint8_t button = mcp.getLastInterruptPin();
+        uint16_t value = !((mcp.getCapturedInterrupt() >> button) & 1);
+        
+        if(value) // Button was pushed
+        {
+            lastbutton = button;
+            lastpressdown = millis(); // button is pushed
+            //Serial.println("PUSH" );
+        }
+        else  // Button was released
+        {
+            //Serial.println("RELEASE" );
+            if(button == lastbutton) 
+            {
+                //Serial.println("Short press " + String(button));
                 lastpressdown = 0; // 'reset' 
 
                 switch(button)
@@ -207,34 +237,12 @@ void front_buttons_read()
 
                 }
             }
-            /*else
-            {
-                lastbutton = button;
-                lastpressdown = millis(); // button is pushed
-            }*/
         }
-        else
-        {
-            //Serial.println("* Invalid!");
-        }
-
-        
-        
-        lastbutton = button;
-        
-
-        //Serial.print("Pin states at time of interrupt: 0b");
-        //Serial.println(mcp.getCapturedInterrupt(), 2);
-        //delay(10);  // debounce
-        // NOTE: If using DEFVAL, INT clears only if interrupt
-        // condition does not exist.
-        // See Fig 1-7 in datasheet.
-        mcp.clearInterrupts();  // clear
+                
+        mcp.clearInterrupts(); 
 
         flags.frontPanel.buttonAnyPressed = true;
     }
-
-
 }
 
 // Should be called from main loop

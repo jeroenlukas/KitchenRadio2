@@ -323,6 +323,7 @@ void display_draw_menu_system()
 
       u8g2.drawStr(150, 12, "Uptime:");     u8g2.drawStr(200, 12, convertTime(information.system.uptimeSeconds).c_str());
       u8g2.drawStr(150, 22, "Amb.light:");  u8g2.drawStr(200, 22, (String(information.system.ldr) + "%").c_str());
+      u8g2.drawStr(150, 32, "Rst reason:");  u8g2.drawStr(200, 32, (String(information.system.lastResetReason)).c_str());
       
       break;
     case MITEM_SYSTEM_WEATHER:

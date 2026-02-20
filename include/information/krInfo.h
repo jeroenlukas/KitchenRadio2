@@ -18,6 +18,8 @@ class Information {
             
             String IPAddress;
             uint8_t ldr;
+
+            int lastResetReason;
         };
         struct AudioPlayer
         {
@@ -90,6 +92,6 @@ class Information {
 
 extern Information information;
 
-void krInfoInitialize(void);
+void info_init(void);
 
 #endif
