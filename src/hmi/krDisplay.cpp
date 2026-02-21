@@ -148,7 +148,7 @@ void display_draw_menu_home()
             u8g2.drawStr(3, 14, ("Temp: " + String(information.weather.temperature) + "\xb0" + "C").c_str());
             u8g2.drawStr(3, 22, ("Wind: " + String(information.weather.windSpeedKmh) + " kmh").c_str());
             u8g2.drawStr(3, 30, ("RSSI: " + String(information.system.wifiRSSI) + " dBm").c_str());
-            u8g2.drawStr(3, 38, ("Buf: " + String(circBuffer.available()) + " B").c_str());
+           // u8g2.drawStr(3, 38, ("Buf: " + String(circBuffer.available()) + " B").c_str());
           }
           else if(settings["display"]["homedisplay"] == "normal")
           {

@@ -1,18 +1,21 @@
 #ifndef AUDIOPLAYER_H
 #define AUDIOPLAYER_H
 
-#include <VS1053.h>
+//#include <VS1053.h>
+#include "AudioTools.h"
+#include "AudioTools/AudioLibs/VS1053Stream.h"
+#include "AudioTools/Communication/AudioHttp.h"
 
 #include "configuration/config.h"
 #include "cbuf_ps.h"
 
-extern VS1053 player;
+//extern VS1053Stream vs1053;
 
-extern cbuf_ps circBuffer;
+//extern cbuf_ps circBuffer;
 
 //extern uint8_t audioplayer_soundMode;
 
-extern char readBuffer[4096] __attribute__((aligned(4)));
+//extern char readBuffer[4096] __attribute__((aligned(4)));
 
 void audioplayer_init();
 void audioplayer_setvolume(uint8_t volume);

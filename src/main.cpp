@@ -193,10 +193,10 @@ void setup()
   log_boot("Timezone:" + String(tz));
 
   // PSRAM buffer
-  circBuffer.resize(CIRCBUFFER_SIZE);
+  //circBuffer.resize(CIRCBUFFER_SIZE);
 
   // Codec
-  Serial.print("Starting vs1053");
+  /*Serial.print("Starting vs1053");
   log_boot("Starting codec...");
   audioplayer_init();
 
@@ -207,7 +207,7 @@ void setup()
   else
   {
     log_boot("Error: VS1053 not found!");
-  }
+  }*/
 
 
   audioplayer_set_soundmode(SOUNDMODE_OFF);
@@ -292,7 +292,7 @@ void loop()
 
     information.system.uptimeSeconds++;
     information.system.wifiRSSI = WiFi.RSSI();
-    information.webRadio.buffer_pct = constrain(((double)circBuffer.available() / (double)CONF_AUDIO_MIN_BYTES) * 100, 0, 100);
+    //information.webRadio.buffer_pct = constrain(((double)circBuffer.available() / (double)CONF_AUDIO_MIN_BYTES) * 100, 0, 100);
   }
 
   // Execute stuff every minute

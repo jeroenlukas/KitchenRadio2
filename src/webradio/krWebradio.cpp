@@ -28,7 +28,7 @@ bool webradio_isconnected()
 
 void webradio_open_url(char *host, char *path)
 {
-    if (webradio_client.connect(host, 80))
+    /*if (webradio_client.connect(host, 80))
     {
         Serial.println("Connected now");
         log_debug("Connected");
@@ -41,9 +41,10 @@ void webradio_open_url(char *host, char *path)
 
     bufferedEnough = false;
 
+
     webradio_client.print(String("GET ") + path + " HTTP/1.1\r\n" +
                           "Host: " + host + "\r\n" +
-                          "Connection: close\r\n\r\n");
+                          "Connection: close\r\n\r\n");*/
 }
 
 void webradio_stop()
@@ -51,7 +52,7 @@ void webradio_stop()
     if(webradio_client.connected())
     {
         log_debug("Disconnecting");
-        webradio_client.stop();
+       // webradio_client.stop();
         audioplayer_flushbuffer();
     }
 }
@@ -99,7 +100,7 @@ void webradio_read_stations()
     return;
 }
 
-bool webradio_open_station(uint8_t index)
+/*bool webradio_open_station(uint8_t index)
 {
     String stationName = stations[index]["name"];
     String url = stations[index]["url"];
@@ -110,22 +111,22 @@ bool webradio_open_station(uint8_t index)
     information.webRadio.station_name = stationName;
     // Split url in host and path
     // example: stream.bnr.nl/bnr_mp3_128_20
-    uint16_t firstSlash = url.indexOf("/", 8);
+   /* uint16_t firstSlash = url.indexOf("/", 8);
     char host[64];
     char path[64];
     
     url.substring(0,firstSlash).toCharArray(host, 64);
     url.substring(firstSlash).toCharArray(path, 64);
     Serial.println("host: " + String(host));
-    Serial.println("path: " + String(path));
-
+    Serial.println("path: " + String(path));*/
+/*
     webradio_open_url(host, path);
 
     
     log_debug(stationName.c_str());
 
     return true;
-}
+}*/
 
 bool webradio_buffered_enough(void)
 {
@@ -134,7 +135,7 @@ bool webradio_buffered_enough(void)
 
 void webradio_handle_stream(void)
 {
-    if (webradio_client.available())
+    /*if (webradio_client.available())
     {
         int bytes_read_from_stream = 0;
 
@@ -156,7 +157,7 @@ void webradio_handle_stream(void)
                 /*if (bytes_read_from_stream < 92 && bytesReadFromStream != bytesUntilmetaData)
                 {
                     Serial.printf("Only wrote %db to circ buff\n", bytesReadFromStream);
-                }*/
+                }
 
                 if(circBuffer.available() > CONF_AUDIO_MIN_BYTES)
                 {
@@ -165,6 +166,6 @@ void webradio_handle_stream(void)
             }
         }
     }
-    
+    */
     return;
 }

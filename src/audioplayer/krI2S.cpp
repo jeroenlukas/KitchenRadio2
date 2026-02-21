@@ -94,7 +94,7 @@ void slavei2s_init()
 // Send WAV header to notify VS1053
 void slavei2s_sendheader()
 {
-  player.playChunk(bt_wav_header, 44);
+  //player.playChunk(bt_wav_header, 44);
   serial_bt.println("header!!!");
 }
 
@@ -140,7 +140,7 @@ void slavei2s_command_parse(String command)
 // Also parse UART commands
 void slavei2s_handle()
 {
-  size_t bytesIn = 0;
+  /*size_t bytesIn = 0;
   if(information.audioPlayer.soundMode == SOUNDMODE_BLUETOOTH)
   {
     esp_err_t result = i2s_read(I2S_PORT, &sBuffer, I2S_BUFFERLEN, &bytesIn, 10);// portMAX_DELAY);
@@ -157,7 +157,7 @@ void slavei2s_handle()
     
     Serial.println("Recv: "  + str);
     slavei2s_command_parse(str);
-  }
+  }*/
 }
 
 void slavei2s_send(String str)

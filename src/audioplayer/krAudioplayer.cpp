@@ -1,5 +1,9 @@
 #include <Arduino.h>
-#include <VS1053.h>
+//#include <VS1053.h>
+
+#include "AudioTools.h"
+#include "AudioTools/AudioLibs/VS1053Stream.h"
+#include "AudioTools/Communication/AudioHttp.h"
 
 #include "audioplayer/cbuf_ps.h"
 #include "audioplayer/krAudioplayer.h"
@@ -12,15 +16,23 @@
 #include "logger.h"
 #include "flags.h"
 
-VS1053 player(VS1053_CS, VS1053_DCS, VS1053_DREQ);
+//VS1053 player(VS1053_CS, VS1053_DCS, VS1053_DREQ);
 
-uint8_t mp3buff[64];
+//uint8_t mp3buff[64];
 
 //uint8_t audioplayer_soundMode = SOUNDMODE_OFF;
 
-cbuf_ps circBuffer(1024); 
+//cbuf_ps circBuffer(1024); 
 
-char readBuffer[4096] __attribute__((aligned(4)));
+//char readBuffer[4096] __attribute__((aligned(4)));
+
+ICYStreamBuffered url(1024*512);  // or replace with ICYStream to get metadata
+
+
+VS1053Stream vs1053; // final audio output
+MultiOutput out;
+MetaDataOutput out_metadata; // final output of metadata
+StreamCopy copier(out, url, 1024); // copy url to decoder
 
 // Set by system, when audiomode is set to 'off'
 void audioplayer_pa_mute(bool mute)
@@ -40,11 +52,21 @@ void audioplayer_init()
 {
     pinMode(PIN_PA_MUTE, OUTPUT);
     
-    player.begin();
+    //player.begin();
     
-    player.loadDefaultVs1053Patches();
-    player.switchToMp3Mode(); // optional, some boards require this
-    player.setVolume(80);
+   // player.loadDefaultVs1053Patches();
+    //player.switchToMp3Mode(); // optional, some boards require this
+    //player.setVolume(80);
+
+     // setup vs1053
+    auto cfg = vs1053.defaultConfig();
+    cfg.is_encoded_data = true; // vs1053 is accepting encoded data
+    // Use your custom pins or define in AudioCodnfig.h
+    cfg.cs_pin = VS1053_CS; 
+    cfg.dcs_pin = VS1053_DCS;
+    cfg.dreq_pin = VS1053_DREQ;
+    //cfg.reset_pin = VS1053_RESET;
+    vs1053.begin(cfg);
 
     audioplayer_pa_mute(true);
 }
@@ -57,9 +79,23 @@ void audioplayer_setvolume(uint8_t volume)
     // Convert to logarithmic scale
     uint8_t vol_log = 2.5 * 20 * log10(information.audioPlayer.volume);
     
-    player.setVolume(vol_log);
+    //player.setVolume(vol_log);
+    vs1053.setVolume(0.6);//TODO
 }
 
+void audioplayer_open_station(int idx)
+{
+    String stationName = "TEST arrow"; // stations[index]["name"];
+    String station_url = "http://stream.gal.io/arrow";//stations[index]["url"];
+    Serial.println(stationName);
+    Serial.println(url);
+
+    information.webRadio.station_index = idx;
+    information.webRadio.station_name = stationName;
+
+    url.begin(station_url.c_str(), "audio/mp3");
+    
+}
 
 
 void audioplayer_set_soundmode(uint8_t soundMode)
@@ -74,7 +110,8 @@ void audioplayer_set_soundmode(uint8_t soundMode)
             break;
 
         case SOUNDMODE_WEBRADIO:
-            webradio_stop();
+            //webradio_stop();
+            url.end();
             break;
 
         case SOUNDMODE_BLUETOOTH:            
@@ -86,7 +123,7 @@ void audioplayer_set_soundmode(uint8_t soundMode)
     }
 
     audioplayer_flushbuffer();
-    player.softReset();    
+    //player.softReset();    
 
     // Switch to the new soundmode
     switch(soundMode)
@@ -124,7 +161,7 @@ void audioplayer_set_soundmode(uint8_t soundMode)
 // Only used for webradio
 void IRAM_ATTR audioplayer_feedbuffer()
 {
-    if(information.audioPlayer.soundMode != SOUNDMODE_WEBRADIO)
+    /*if(information.audioPlayer.soundMode != SOUNDMODE_WEBRADIO)
         return;
 
     if(webradio_buffered_enough() == false)
@@ -149,7 +186,7 @@ void IRAM_ATTR audioplayer_feedbuffer()
             // Actually send the data to the VS1053
             player.playChunk(mp3buff, bytesRead);
         }
-    }
+    }*/
 }
 
 void audioplayer_settone(int8_t bass_freq, int8_t bass_gain, int8_t treble_freq, int8_t treble_gain)
@@ -160,14 +197,14 @@ void audioplayer_settone(int8_t bass_freq, int8_t bass_gain, int8_t treble_freq,
     SB_AMPLITUDE 7:4    Bass Enhancement in 1 dB steps (0..15, 0 = off)
     SB_FREQLIMIT 3:0    Lower limit frequency in 10 Hz steps (2..15
     */
-    uint16_t toneconfig = ((treble_gain << 12) + (treble_freq << 8) + (bass_gain << 4) + bass_freq);
+    /*uint16_t toneconfig = ((treble_gain << 12) + (treble_freq << 8) + (bass_gain << 4) + bass_freq);
         
-    player.writeRegister(0x2, toneconfig);
+    player.writeRegister(0x2, toneconfig);*/
 }
 
 void audioplayer_setbass(int8_t bass_gain)
 {
-    int gain = constrain(bass_gain, 0, +15);
+    /*int gain = constrain(bass_gain, 0, +15);
     information.audioPlayer.bass = gain;
 
     settings["audio"]["tonecontrol"]["bass"] = gain;
@@ -178,14 +215,14 @@ void audioplayer_setbass(int8_t bass_gain)
         information.audioPlayer.bass,
         int(settings["audio"]["tonecontrol"]["treble_freq"]),
         information.audioPlayer.treble
-        );
+        );*/
     
 
 }
 
 void audioplayer_settreble(int8_t treble_gain)
 {
-    int gain = constrain(treble_gain, -8, +7);
+    /*int gain = constrain(treble_gain, -8, +7);
     information.audioPlayer.treble = gain;
 
     settings["audio"]["tonecontrol"]["treble"] = gain;
@@ -196,11 +233,11 @@ void audioplayer_settreble(int8_t treble_gain)
         information.audioPlayer.bass,
         int(settings["audio"]["tonecontrol"]["treble_freq"]),
         information.audioPlayer.treble
-        );
+        );*/
 }
 
 // Flush the buffer, to avoid audio continuing to play once the stream is closed
 void audioplayer_flushbuffer()
 {
-    circBuffer.flush();
+   // circBuffer.flush();
 }
