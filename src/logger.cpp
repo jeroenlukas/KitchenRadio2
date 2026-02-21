@@ -91,11 +91,11 @@ void log_debug_draw()
     // Add a log line if needed      
     if(flags.main.updateLog)
     {
-    flags.main.updateLog = false;
-    log_debug_print();
+        flags.main.updateLog = false;
+        log_debug_print();
     }
 
-    if(settings["homedisplay"] == "debug")
+    if(settings["display"]["homedisplay"] == "debug")
     {
         u8g2.drawLog(LOG_DEBUG_POSX + 3, LOG_DEBUG_POSY + 1, u8g2log_debug);
 
